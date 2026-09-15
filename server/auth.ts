@@ -7,7 +7,6 @@ import { HttpError, json, readJsonBody, requireString } from "./http.ts";
 export interface AuthUser {
   id: number;
   email: string;
-  profilePicture: string | null;
 }
 
 interface UserRow {
@@ -39,7 +38,7 @@ async function hashPassword(password: string, salt: string): Promise<string> {
 }
 
 function toAuthUser(row: UserRow): AuthUser {
-  return { id: row.id, email: row.email, profilePicture: row.profile_picture };
+  return { id: row.id, email: row.email };
 }
 
 export async function signup(req: Request): Promise<Response> {
@@ -60,7 +59,7 @@ export async function signup(req: Request): Promise<Response> {
     )
     .run(email, passwordHash, salt, profilePicture);
 
-  const user: AuthUser = { id: Number(result.lastInsertRowid), email, profilePicture };
+  const user: AuthUser = { id: Number(result.lastInsertRowid), email };
   const token = createSession(user.id);
 
   return json({ token, user }, 201);
@@ -116,4 +115,24 @@ export function findUserByEmail(email: string): AuthUser | undefined {
     | UserRow
     | undefined;
   return row ? toAuthUser(row) : undefined;
+}
+
+export function checkSession(req: Request): Response {
+    const header = req.headers.get("Authorization") ?? "";
+    const [scheme, token] = header.split(" ");
+
+    if (scheme !== "Bearer" || !token) {
+        return new Response("Unauthorized", { status: 401 });
+    }
+
+    // On cherche le token dans la DB
+    const session = db
+        .prepare("SELECT token FROM sessions WHERE token = ?")
+        .get(token);
+
+    if (!session) {
+        return new Response("Unauthorized", { status: 401 });
+    }
+
+    return json({ authenticated: true });
 }
