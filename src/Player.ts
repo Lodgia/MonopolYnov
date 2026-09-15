@@ -1,23 +1,39 @@
-class Player{
+import {Propriety} from './Propriety.ts'
+
+export class Player{
+    id : number;
     name : string;
-    c : Case ;
+    c : Propriety ;
+    haveProp : Propriety[]
     money : number;
 
-    constructor(name:string, c: Case,money : number){
+    constructor(id:number ,name:string, c: Propriety,money : number){
+        this.id=id
         this.name = name
         this.c = c
+        this.haveProp = []
         this.money = money
     }
 
-    buy(n:number){
-        if(this.money-n>0){
-            this.money-=n
-            return `Propriété acheté !`
+    buy(p:Propriety){
+        if(this.money-p.price>0){
+            p.isBuyBy(this)
+            this.money-=p.price
+            this.haveProp.push(p)
+            return true
         }
-        return `Vous n'avez pas assez d'argent...`
+        return false
     }
 
     startCase(){
         this.money+=200
+    }
+
+    taxe(n:number){
+        if(this.money-n>0){
+            this.money-=n
+            return true
+        }
+        return false
     }
 }

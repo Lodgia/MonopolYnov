@@ -1,17 +1,16 @@
+import {Propriety} from './Propriety.ts'
+import {Player} from './Player.ts'
 interface CaseProps{
-    buyBy : Player,
-    playerIn : Player,
-    name : string,
-    costHouse : number,
-    allcost : number[]
-    price : number
+    propriety : Propriety,
+    player : Player
+
 }
 export function Case(props : CaseProps){
     return (
         <>
             <div>
-                <p>{props.name}</p>
-                <p>{props.price}</p>
+                <p>{props.propriety.name}</p>
+                <p>{props.propriety.price}</p>
             </div>
         </>
     )
