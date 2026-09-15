@@ -1,0 +1,529 @@
+openapi: 3.0.3
+info:
+  title: Turn-by-turn game server
+  description: >
+    Generic backend for a turn-by-turn game front-end project. The server
+    only understands players, turn order, and pending/started/ended status;
+    `state` and `endData` are opaque, front-end-defined strings (typically
+    JSON) that are stored and returned as-is, never parsed or validated.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8000
+    description: Local dev server
+
+tags:
+  - name: Auth
+  - name: Game management
+  - name: Game
+  - name: Game history
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Sign up
+      description: >
+        Creates an account and logs it in immediately (no email
+        verification step). Returns a session token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                profilePicture:
+                  type: string
+                  nullable: true
+                  description: Free-form, unvalidated (e.g. a URL or base64 data URI).
+              example:
+                email: alice@example.com
+                password: hunter2
+                profilePicture: "data:image/png;base64,..."
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: An account with this email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              example:
+                email: alice@example.com
+                password: hunter2
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /games:
+    post:
+      tags: [Game management]
+      summary: Create a new game
+      description: The creator is automatically added to the players list.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [minPlayers, maxPlayers]
+              properties:
+                minPlayers:
+                  type: integer
+                  minimum: 1
+                maxPlayers:
+                  type: integer
+              example:
+                minPlayers: 2
+                maxPlayers: 4
+      responses:
+        "201":
+          description: Game created, status `pending`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /games/mine:
+    get:
+      tags: [Game management]
+      summary: List my ongoing games
+      description: >
+        Games the current user is playing: `pending`, `started`, or `ended`
+        games they have not yet marked as seen.
+      responses:
+        "200":
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /games/{id}/invite:
+    post:
+      tags: [Game management]
+      summary: Invite a player
+      description: >
+        Adds an existing user to a `pending` game. Creator only.
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+              example:
+                email: bob@example.com
+      responses:
+        "200":
+          description: Player added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        "400":
+          description: Game already started, or already at maxPlayers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Only the game creator can invite players
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Game not found, or no user with this email exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: This player is already in the game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /games/{id}/start:
+    post:
+      tags: [Game management]
+      summary: Start a game
+      description: >
+        Creator only. Requires the current player count to be within
+        `[minPlayers, maxPlayers]`.
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  description: Initial game state. Defaults to `""`.
+                currentTurnUserId:
+                  type: integer
+                  description: Who plays first. Defaults to the creator.
+              example:
+                state: "{\"board\":[]}"
+                currentTurnUserId: 1
+      responses:
+        "200":
+          description: Game started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        "400":
+          description: Game already started, not enough players, or currentTurnUserId is not a player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Only the game creator can start the game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /games/{id}/seen:
+    post:
+      tags: [Game management]
+      summary: Mark an ended game as seen
+      description: Removes the game from `/games/mine` for the current user.
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      responses:
+        "204":
+          description: Marked as seen
+        "400":
+          description: Game has not ended yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: You are not a player in this game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /games/{id}:
+    get:
+      tags: [Game]
+      summary: Get game status and state
+      description: >
+        Returns the game's status (pending start / who's turn it is / end
+        status including custom `endData`) together with its current
+        `state` string. Only players in the game can fetch it.
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      responses:
+        "200":
+          description: Game status and state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: You are not a player in this game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /games/{id}/state:
+    put:
+      tags: [Game]
+      summary: Set new game state
+      description: >
+        Only the player whose turn it is can call this, and only while the
+        game is `started`. Either pass `currentTurnUserId` to hand the turn
+        to another player, or set `ended: true` (optionally with `endData`)
+        to finish the game.
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                currentTurnUserId:
+                  type: integer
+                  description: Required unless `ended` is true.
+                ended:
+                  type: boolean
+                  default: false
+                endData:
+                  type: string
+                  nullable: true
+                  description: Only used when `ended` is true.
+              examples:
+                nextTurn:
+                  summary: Hand the turn to another player
+                  value:
+                    state: "{\"board\":[\"A\"]}"
+                    currentTurnUserId: 2
+                endGame:
+                  summary: End the game
+                  value:
+                    state: "{\"board\":[\"A\",\"B\"]}"
+                    ended: true
+                    endData: "{\"winner\":\"bob@example.com\"}"
+      responses:
+        "200":
+          description: Updated game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+        "400":
+          description: Game is not in progress, or currentTurnUserId is not a player
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: You are not a player in this game, or it is not your turn
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /games/history:
+    get:
+      tags: [Game history]
+      summary: List finished games
+      description: >
+        All ended games the current user took part in (seen or not),
+        each with its ending status and custom `endData`, most recently
+        ended first.
+      responses:
+        "200":
+          description: List of ended games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token returned by `/auth/signup` or `/auth/login`.
+
+  parameters:
+    GameId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: It is not your turn
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        profilePicture:
+          type: string
+          nullable: true
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: integer
+        creatorId:
+          type: integer
+        minPlayers:
+          type: integer
+        maxPlayers:
+          type: integer
+        status:
+          type: string
+          enum: [pending, started, ended]
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        currentTurnUserId:
+          type: integer
+          nullable: true
+        isYourTurn:
+          type: boolean
+          description: Whether it is the requesting user's turn.
+        state:
+          type: string
+          description: Opaque, front-end-defined game state.
+        endData:
+          type: string
+          nullable: true
+          description: Opaque, front-end-defined ending data. Set only once the game has ended.
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+      example:
+        id: 1
+        creatorId: 1
+        minPlayers: 2
+        maxPlayers: 4
+        status: started
+        players:
+          - id: 1
+            email: alice@example.com
+            profilePicture: null
+          - id: 2
+            email: bob@example.com
+            profilePicture: null
+        currentTurnUserId: 2
+        isYourTurn: false
+        state: "{\"board\":[\"A\"]}"
+        endData: null
+        createdAt: "2026-09-14 11:11:05"
+        startedAt: "2026-09-14 11:11:12"
+        endedAt: null
+
+  responses:
+    BadRequest:
+      description: Malformed request body or invalid field
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Missing/invalid bearer token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Game not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
