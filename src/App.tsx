@@ -15,7 +15,7 @@ export default function App() {
     }, [dataCard.isHit])
 
     const hitCard = ( type: "communityCards" | "luckyCards" ) => {
-        setDataCard({...dataCard, isHit: true, label: RandomCard(type)})
+        setDataCard({...dataCard, isHit: true, type: type, label: RandomCard(dataCard.type)})
     }
 
     return (
