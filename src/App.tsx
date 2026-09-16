@@ -1,12 +1,10 @@
 import './index.css'
 
-function App() {
+export default function App() {
 
-  return (
-    <>
-      
-    </>
-  )
+    return (
+        <>
+
+        </>
+    )
 }
-
-export default App
