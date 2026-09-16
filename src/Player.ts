@@ -3,11 +3,11 @@ import {Propriety} from './Propriety.ts'
 export class Player{
     id : number;
     name : string;
-    c : Propriety ;
+    c : number ;
     haveProp : Propriety[]
     money : number;
 
-    constructor(id:number ,name:string, c: Propriety,money : number){
+    constructor(id:number ,name:string, c: number,money : number){
         this.id=id
         this.name = name
         this.c = c
@@ -35,5 +35,23 @@ export class Player{
             return true
         }
         return false
+    }
+
+    checkProp(p:Propriety){
+        for (let i=0;i<this.haveProp.length;i++){
+            if (this.haveProp[i].id==p.id){
+                return true
+            }
+        }
+        return false
+    }
+
+    upgrade(p:Propriety){
+        if (this.checkProp(p)){
+            if (this.money>p.costHouse){
+                this.money-=p.costHouse
+                p.upgrade()
+            }
+        }
     }
 }
