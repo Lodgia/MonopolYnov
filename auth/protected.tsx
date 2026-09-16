@@ -14,14 +14,12 @@ export default function ProtectedRoute() {
                 setLoading(false);
                 return;
             }
-
             try {
                 const response = await fetch("/api/check-session", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-
                 if (response.ok) {
                     setAuthenticated(true);
                 } else {
@@ -30,7 +28,6 @@ export default function ProtectedRoute() {
             } catch (error) {
                 console.error(error);
             }
-
             setLoading(false);
         }
 

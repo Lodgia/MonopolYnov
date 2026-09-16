@@ -50,37 +50,16 @@ export function Signup() {
 
     return (
         <>
-            <h1 className="flex justify-center">S'enregistrer :</h1>
+            <p className="flex justify-center text-3xl mt-5">S'enregistrer :</p>
 
-            <form
-                className="flex flex-col items-center"
-                onSubmit={handleSubmit}
-            >
+            <form className="flex flex-col items-center mt-5" onSubmit={handleSubmit}>
                 <label htmlFor="email">Email :</label>
-
-                <input
-                    className="border-2 border-black"
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                />
+                <input className="border-2 border-black" id="email" name="email" type="email" value={formData.email} onChange={handleChange}/>
 
                 <label htmlFor="password">Mot de passe :</label>
+                <input className="border-2" id="password" name="password" type="password" value={formData.password} onChange={handleChange}/>
 
-                <input
-                    className="border-2"
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                />
-
-                <button type="submit">
-                    Valider
-                </button>
+                <button className='border-2 border-black p-1 mt-3' type="submit">Valider</button>
             </form>
         </>
     );
