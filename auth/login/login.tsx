@@ -55,16 +55,21 @@ export function Login() {
 
     return (
         <>
-           <p className="flex justify-center text-3xl mt-5">Se Connecter :</p>
-           
-           <form className="flex flex-col items-center mt-5" onSubmit={handleSubmit}>
-                <label htmlFor="email">Email :</label>
-                <input className="border-2 border-black" id="email" name="email" type="email" value={formData.email} onChange={handleChange}/>
+           <form onSubmit={handleSubmit}>
+            <div className="flex flex-col items-center mt-50">
+                <div className="flex flex-col items-center border-2 border-black w-80 bg-blue-700">
+                    <p className="text-center text-3xl my-10">SE CONNECTER</p>
+                </div>
+                <div className="flex flex-col items-center border-2 border-black py-20 w-80 bg-blue-100">
+                    <label htmlFor="email">Email</label>
+                    <input className="border-2 border-black p-1 m-2" id="email" name="email" type="email" value={formData.email} onChange={handleChange}/>
 
-                <label htmlFor="password">Mot de passe :</label>
-                <input className="border-2" id="password" name="password" type="password" value={formData.password} onChange={handleChange}/>
+                    <label htmlFor="password">Mot de passe</label>
+                    <input className="border-2 p-1 m-2" id="password" name="password" type="password" value={formData.password} onChange={handleChange}/>
 
-                <button className='border-2 border-black p-1 mt-3' type="submit">Valider</button>
+                    <button className='border-2 border-black p-2 mt-3' type="submit">Valider</button>
+                </div>
+            </div>
             </form>
         </>
     )
