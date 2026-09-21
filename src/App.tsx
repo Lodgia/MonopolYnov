@@ -4,6 +4,11 @@ import {Login} from "../auth/login/login";
 import {Signup} from "../auth/signup/signup";
 import {Home} from "../protected/home";
 import HomePage from "./HomePage"
+import { Propriety } from "./Propriety.ts";
+import { Player } from "./Player.ts";
+
+const p = new Propriety("Rue de la paix",500,[250,50,75,95,200,1500],250,"brown")
+const pl = new Player(-1,"",1,3000)
 
 export default function App() {
     return (
