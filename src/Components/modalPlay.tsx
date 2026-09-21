@@ -42,9 +42,13 @@ export default function modalPlay({ onClose }: props) {
                             <button onClick={() => setAction("choice")}><IoMdCloseCircleOutline /></button>
                         </div>
                         <hr className="text-white w-full my-5" />
-                        <div className="flex items-center justify-between mb-5">
-                            <h2 className="text-center flex items-center justify-center gap-3">Création d'une partie ( code : {inviteCode} )<TfiReload onClick={generateInviteCode} /></h2>
-                            <button onClick={() => setAction("choice")}><IoMdCloseCircleOutline /></button>
+                        <div className="w-full flex">
+                            <div className="w-1/2 flex items-center justify-center border-r-5 my-5">
+                                <h3>Gestion des joueurs</h3>
+                            </div>
+                            <div className="w-1/2 flex items-center justify-center border-2">
+                                <h3>Paramètres</h3>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -56,14 +60,14 @@ export default function modalPlay({ onClose }: props) {
         //             <h2 className="text-center flex items-center justify-center">Configuration de la partie</h2>
         //             <button onClick={onClose}><IoMdCloseCircleOutline/></button>
         //         </div>
-        //         <div className="w-full flex">
-        //             <div className="w-1/2 flex items-center justify-center">
-        //                 <h3>Gestion des joueurs</h3>
-        //             </div>
-        //             <div className="w-1/2 flex items-center justify-center border-2">
-        //                 <h3>Paramètres</h3>
-        //             </div>
-        //         </div>
+        // <div className="w-full flex">
+        //     <div className="w-1/2 flex items-center justify-center">
+        //         <h3>Gestion des joueurs</h3>
+        //     </div>
+        //     <div className="w-1/2 flex items-center justify-center border-2">
+        //         <h3>Paramètres</h3>
+        //     </div>
+        // </div>
         //     </div>
         // </div>
     )

@@ -94,7 +94,7 @@ export default function Rules() {
 
     return (
         <>
-            <IaFound />
+            <IaFound isOpen={isOpen} setIsOpen={setIsOpen} />
             <div
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm hidden"
                 role="dialog"
@@ -171,20 +171,17 @@ export default function Rules() {
     )
 }
 
-function IaFound() {
-    const [isOpen, setIsOpen] = useState(false)
+type props = {
+    isOpen: boolean; 
+    setIsOpen: (v: boolean) => void; 
+}
 
-
+function IaFound({ isOpen, setIsOpen } : props) {
     return (
         <>
-            <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="rules-title"
-                onClick={() => setIsOpen(false)}
-            >
+            <div className="fixed flex-col inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="rules-title">
                 <p className='flex font-mono font-bold h-screen justify-center items-center text-[50px] text-white'>455 : IA Found</p>
+                <button onClick={() => setIsOpen(!isOpen) }>Revenir en arrière</button>
             </div> 
         </>
     )

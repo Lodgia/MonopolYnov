@@ -15,7 +15,6 @@ export function des( props : desProps){
                 Score dé 1 :{de1} /// Score dé 2 : {de2}
                 Score total : {de1+de2}
             </div>
-            
         </>
     )
 }
