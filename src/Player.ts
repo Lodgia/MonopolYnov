@@ -15,8 +15,12 @@ export class Player{
         this.money = money
     }
 
+    isSolvent(){
+        return this.money > 0
+    }
+
     buy(p:Propriety){
-        if(this.money-p.price>0){
+        if(this.money-p.price>=0){
             p.isBuyBy(this)
             this.money-=p.price
             this.haveProp.push(p)
@@ -30,10 +34,15 @@ export class Player{
     }
 
     taxe(n:number){
-        if(this.money-n>0){
+        if(this.money-n>=0){
             this.money-=n
             return true
         }
         return false
     }
+}
+
+export function findWinner(players: Player[]): Player | null {
+    const solventPlayers = players.filter((player) => player.isSolvent())
+    return solventPlayers.length === 1 ? solventPlayers[0] : null
 }
