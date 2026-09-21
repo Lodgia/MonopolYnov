@@ -55,9 +55,9 @@ export function Login() {
 
     return (
         <>
-        <body className="bg-blue-400">
+        <div className="h-screen w-screen bg-blue-400">
             <form onSubmit={handleSubmit}>
-            <div className="flex flex-col items-center mt-50">
+            <div className="flex flex-col items-center pt-50">
                 <div className="flex flex-col items-center border-3 border-black w-80 bg-blue-700">
                     <p className="font-bold text-center text-3xl my-10">SE CONNECTER</p>
                 </div>
@@ -74,8 +74,7 @@ export function Login() {
                 </div>
             </div>
             </form>
-        </body>
-           
+        </div>
         </>
     )
 }
