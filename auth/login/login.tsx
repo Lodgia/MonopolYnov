@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 
@@ -57,10 +57,10 @@ export function Login() {
         <>
            <form onSubmit={handleSubmit}>
             <div className="flex flex-col items-center mt-50">
-                <div className="flex flex-col items-center border-2 border-black w-80 bg-blue-700">
-                    <p className="text-center text-3xl my-10">SE CONNECTER</p>
+                <div className="flex flex-col items-center border-3 border-black w-80 bg-blue-700">
+                    <p className="font-bold text-center text-3xl my-10">SE CONNECTER</p>
                 </div>
-                <div className="flex flex-col items-center border-2 border-black py-20 w-80 bg-blue-100">
+                <div className="flex flex-col items-center border-3 border-black py-20 w-80 bg-blue-100">
                     <label htmlFor="email">Email</label>
                     <input className="border-2 border-black p-1 m-2" id="email" name="email" type="email" value={formData.email} onChange={handleChange}/>
 
@@ -68,6 +68,8 @@ export function Login() {
                     <input className="border-2 p-1 m-2" id="password" name="password" type="password" value={formData.password} onChange={handleChange}/>
 
                     <button className='border-2 border-black p-2 mt-3' type="submit">Valider</button>
+                    
+                    <Link className="mt-5 underline" to={"/signup"}>S'ENREGISTRER</Link>
                 </div>
             </div>
             </form>

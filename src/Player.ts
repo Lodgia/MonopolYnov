@@ -40,6 +40,24 @@ export class Player{
         }
         return false
     }
+
+    checkProp(p:Propriety){
+        for (let i=0;i<this.haveProp.length;i++){
+            if (this.haveProp[i].id==p.id){
+                return true
+            }
+        }
+        return false
+    }
+
+    upgrade(p:Propriety){
+        if (this.checkProp(p)){
+            if (this.money>p.costHouse){
+                this.money-=p.costHouse
+                p.upgrade()
+            }
+        }
+    }
 }
 
 export function findWinner(players: Player[]): Player | null {

@@ -9,7 +9,7 @@ import {Player} from "./Player.ts";
 import { Propriety } from "./Propriety.ts";
 
 const player = new Player(-1,"",-1,5000)
-const prop = new Propriety("rue de la paix",0,[500,100,150,200,15000],200)
+const prop = new Propriety("rue de la paix",0,[500,100,150,200,15000],200,"blue")
 
 export default function App() {
     return (
