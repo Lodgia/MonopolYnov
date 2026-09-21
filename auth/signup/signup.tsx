@@ -54,6 +54,7 @@ export function Signup() {
 
     return (
         <>
+        <body className="bg-blue-400">
             <form onSubmit={handleSubmit}>
             <div className="flex flex-col items-center mt-50">
                 <div className="flex flex-col items-center border-3 border-black w-80 bg-red-700">
@@ -72,6 +73,7 @@ export function Signup() {
                 </div>
             </div>
             </form>
+        </body>
         </>
     );
 }
