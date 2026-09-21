@@ -93,77 +93,99 @@ export default function Rules() {
     }
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rules-title"
-            onClick={() => setIsOpen(false)}
-        >
-            <section
-                className="flex max-h-[min(720px,calc(100vh-2rem))] w-full max-w-5xl flex-col overflow-hidden rounded-xl border-2 border-black bg-white shadow-2xl md:flex-row"
-                onClick={(event) => event.stopPropagation()}
+        <>
+            <IaFound />
+            <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm hidden"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="rules-title"
+                onClick={() => setIsOpen(false)}
             >
-                <aside className="flex w-full shrink-0 flex-col bg-black p-6 text-white md:w-64">
-                    <div className="mb-8 flex items-start justify-between gap-4">
-                        <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-400">MonopolYnov</p>
-                            <h1 id="rules-title" className="mt-2 text-2xl font-bold">Règles du jeu</h1>
-                        </div>
-                        <button type="button" className="rounded-lg p-2 text-neutral-300 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-400 md:hidden" aria-label="Fermer les règles" onClick={() => setIsOpen(false)}>
-                            <span aria-hidden="true" className="text-2xl leading-none">×</span>
-                        </button>
-                    </div>
-
-                    <nav aria-label="Sections des règles" className="grid gap-1 md:block">
-                        {ruleSections.map((section) => (
-                            <button
-                                key={section.title}
-                                type="button"
-                                className={`w-full rounded-lg px-3 py-2 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-red-400 ${activeSection.title === section.title ? 'bg-red-700 font-semibold text-white' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
-                                aria-current={activeSection.title === section.title ? 'page' : undefined}
-                                onClick={() => setActiveSection(section)}
-                            >
-                                {section.title}
+                <section
+                    className="flex max-h-[min(720px,calc(100vh-2rem))] w-full max-w-5xl flex-col overflow-hidden rounded-xl border-2 border-black bg-white shadow-2xl md:flex-row"
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    <aside className="flex w-full shrink-0 flex-col bg-black p-6 text-white md:w-64">
+                        <div className="mb-8 flex items-start justify-between gap-4">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-400">MonopolYnov</p>
+                                <h1 id="rules-title" className="mt-2 text-2xl font-bold">Règles du jeu</h1>
+                            </div>
+                            <button type="button" className="rounded-lg p-2 text-neutral-300 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-400 md:hidden" aria-label="Fermer les règles" onClick={() => setIsOpen(false)}>
+                                <span aria-hidden="true" className="text-2xl leading-none">×</span>
                             </button>
-                        ))}
-                    </nav>
-
-                    <button type="button" className="mt-6 hidden rounded-lg border border-neutral-600 px-4 py-2 text-sm font-semibold text-neutral-200 transition hover:border-neutral-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-400 md:mt-auto md:block" onClick={() => setIsOpen(false)}>
-                        Fermer
-                    </button>
-                </aside>
-
-                <div className="flex min-h-0 flex-1 flex-col">
-                    <header className="flex items-center justify-between border-b-2 border-black bg-white px-6 py-5 md:px-8">
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-red-700">Guide de partie</p>
-                            <h2 className="mt-1 text-xl font-bold text-black">{activeSection.title}</h2>
-                        </div>
-                        <button type="button" className="hidden rounded-lg p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-red-400 md:block" aria-label="Fermer les règles" onClick={() => setIsOpen(false)}>
-                            <span aria-hidden="true" className="text-2xl leading-none">×</span>
-                        </button>
-                    </header>
-
-                    <main className="min-h-0 flex-1 overflow-y-auto bg-neutral-100 px-6 py-6 md:px-8">
-                        <div className="rounded-lg border-2 border-black bg-white p-6">
-                            <p className="text-sm font-bold uppercase tracking-wider text-red-700">{activeSection.label}</p>
-                            <h3 className="mt-3 text-2xl font-bold text-black">{activeSection.title}</h3>
-                            <p className="mt-2 max-w-2xl text-neutral-600">{activeSection.introduction}</p>
                         </div>
 
-                        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                            {activeSection.cards.map((card, index) => (
-                                <article key={card.title} className="rounded-lg border border-black bg-white p-5">
-                                    <div className={`mb-4 h-2 w-16 ${index % 2 === 0 ? 'bg-red-700' : 'bg-black'}`} />
-                                    <h3 className="font-semibold text-black">{card.title}</h3>
-                                    <p className="mt-2 text-sm leading-6 text-neutral-600">{card.text}</p>
-                                </article>
+                        <nav aria-label="Sections des règles" className="grid gap-1 md:block">
+                            {ruleSections.map((section) => (
+                                <button
+                                    key={section.title}
+                                    type="button"
+                                    className={`w-full rounded-lg px-3 py-2 text-left text-sm transition focus:outline-none focus:ring-2 focus:ring-red-400 ${activeSection.title === section.title ? 'bg-red-700 font-semibold text-white' : 'text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                                    aria-current={activeSection.title === section.title ? 'page' : undefined}
+                                    onClick={() => setActiveSection(section)}
+                                >
+                                    {section.title}
+                                </button>
                             ))}
-                        </div>
-                    </main>
-                </div>
-            </section>
-        </div>
+                        </nav>
+
+                        <button type="button" className="mt-6 hidden rounded-lg border border-neutral-600 px-4 py-2 text-sm font-semibold text-neutral-200 transition hover:border-neutral-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-400 md:mt-auto md:block" onClick={() => setIsOpen(false)}>
+                            Fermer
+                        </button>
+                    </aside>
+
+                    <div className="flex min-h-0 flex-1 flex-col">
+                        <header className="flex items-center justify-between border-b-2 border-black bg-white px-6 py-5 md:px-8">
+                            <div>
+                                <p className="text-sm font-bold uppercase tracking-wider text-red-700">Guide de partie</p>
+                                <h2 className="mt-1 text-xl font-bold text-black">{activeSection.title}</h2>
+                            </div>
+                            <button type="button" className="hidden rounded-lg p-2 text-neutral-500 transition hover:bg-neutral-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-red-400 md:block" aria-label="Fermer les règles" onClick={() => setIsOpen(false)}>
+                                <span aria-hidden="true" className="text-2xl leading-none">×</span>
+                            </button>
+                        </header>
+
+                        <main className="min-h-0 flex-1 overflow-y-auto bg-neutral-100 px-6 py-6 md:px-8">
+                            <div className="rounded-lg border-2 border-black bg-white p-6">
+                                <p className="text-sm font-bold uppercase tracking-wider text-red-700">{activeSection.label}</p>
+                                <h3 className="mt-3 text-2xl font-bold text-black">{activeSection.title}</h3>
+                                <p className="mt-2 max-w-2xl text-neutral-600">{activeSection.introduction}</p>
+                            </div>
+
+                            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                                {activeSection.cards.map((card, index) => (
+                                    <article key={card.title} className="rounded-lg border border-black bg-white p-5">
+                                        <div className={`mb-4 h-2 w-16 ${index % 2 === 0 ? 'bg-red-700' : 'bg-black'}`} />
+                                        <h3 className="font-semibold text-black">{card.title}</h3>
+                                        <p className="mt-2 text-sm leading-6 text-neutral-600">{card.text}</p>
+                                    </article>
+                                ))}
+                            </div>
+                        </main>
+                    </div>
+                </section>
+            </div>
+        </>
+    )
+}
+
+function IaFound() {
+    const [isOpen, setIsOpen] = useState(false)
+
+
+    return (
+        <>
+            <div
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="rules-title"
+                onClick={() => setIsOpen(false)}
+            >
+                <p className='flex font-mono font-bold h-screen justify-center items-center text-[50px] text-white'>455 : IA Found</p>
+            </div> 
+        </>
     )
 }
