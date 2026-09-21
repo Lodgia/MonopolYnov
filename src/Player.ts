@@ -3,11 +3,11 @@ import {Propriety} from './Propriety.ts'
 export class Player{
     id : number;
     name : string;
-    c : Propriety ;
+    c : number ;
     haveProp : Propriety[]
     money : number;
 
-    constructor(id:number ,name:string, c: Propriety,money : number){
+    constructor(id:number ,name:string, c: number,money : number){
         this.id=id
         this.name = name
         this.c = c
