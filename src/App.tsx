@@ -4,6 +4,9 @@ import {Login} from "../auth/login/login";
 import {Signup} from "../auth/signup/signup";
 import {Home} from "../protected/home";
 import HomePage from "./HomePage"
+import {Board} from "./Board.tsx"
+import Error from "./Error.tsx";
+
 
 export default function App() {
     return (
@@ -12,10 +15,13 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/board" element={<Board/>}/>
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/home" element={<Home />} />
                 </Route>
+
+                <Route path="*" element={<Error />} />
             </Routes>
         </BrowserRouter>
     );
