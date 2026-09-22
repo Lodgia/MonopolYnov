@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "../auth/protected";
-import {Login} from "../auth/login/login";
-import {Signup} from "../auth/signup/signup";
-import {Home} from "../protected/home";
-import HomePage from "./HomePage"
+import ProtectedRoute from "../auth/protected.tsx";
+import {Login} from "../auth/login/login.tsx";
+import {Signup} from "../auth/signup/signup.tsx";
+import {Home} from "../protected/home.tsx";
+import HomePage from "./HomePage.tsx"
 import { Propriety } from "./Propriety.ts";
 import { Player } from "./Player.ts";
 import Error from "./Error.tsx";
