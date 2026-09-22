@@ -5,6 +5,7 @@ import {Signup} from "../auth/signup/signup";
 import {Home} from "../protected/home";
 import HomePage from "./HomePage"
 import {Board} from "./Board.tsx"
+import Error from "./Error.tsx";
 
 
 export default function App() {
@@ -19,6 +20,8 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                     <Route path="/home" element={<Home />} />
                 </Route>
+
+                <Route path="*" element={<Error />} />
             </Routes>
         </BrowserRouter>
     );

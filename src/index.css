@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body {
-    background-color: rgba(0, 140, 255, 0.637);
+    /*background-color: rgba(0, 140, 255, 0.637);*/
 }
 
 .victory-modal-backdrop {
