@@ -3,13 +3,28 @@ import { Propriety } from "./Propriety.ts";
 
 interface CaseProps {
   propriety: Propriety;
-  player: Player;
+  players: Player[];
   position?: "top" | "bottom" | "left" | "right" | "corner";
 }
 
-export function Case({ propriety, player, position = "bottom" }: CaseProps) {
-  const isHorizontal = position === "left" || position === "right";
 
+
+export function Case({ propriety, players, position = "bottom" }: CaseProps) {
+  const isHorizontal = position === "left" || position === "right";
+  const pl = (allPlayers: Player[]) => {
+    const playersOnCase = allPlayers.filter(p => p.c === propriety.id);
+    if (playersOnCase.length === 0) return null;
+    return (
+      <div className="flex gap-0.5 justify-center">
+        {playersOnCase.map((p) => (
+          <div 
+            key={p.id}
+            className={`w-2 h-2 rounded-full ${p.color}`} 
+          />
+        ))}
+      </div>
+    );
+  }
   return (
     <div
       className={`w-full h-full border border-slate-700 bg-white flex ${
@@ -33,6 +48,7 @@ export function Case({ propriety, player, position = "bottom" }: CaseProps) {
         <h1 className="font-bold text-[8px] leading-tight text-center break-words max-w-full">
           {propriety.name}
         </h1>
+        {pl(players)}      
         <p className="font-bold text-[9px] shrink-0">
           {propriety.price}$
         </p>

@@ -6,13 +6,15 @@ export class Player{
     c : number ;
     haveProp : Propriety[]
     money : number;
+    color : "bg-blue-500" | "bg-red-500" | "bg-orange-500" | "bg-green-500" | ""
 
-    constructor(id:number ,name:string, c: number,money : number){
+    constructor(id:number ,name:string, c: number,money : number,color:"bg-blue-500" | "bg-red-500" | "bg-orange-500" | "bg-green-500" | ""){
         this.id=id
         this.name = name
         this.c = c
         this.haveProp = []
         this.money = money
+        this.color = color
     }
 
     isSolvent(){
