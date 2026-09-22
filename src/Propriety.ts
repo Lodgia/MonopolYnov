@@ -23,7 +23,8 @@ export class Propriety{
     color : string
     level : number
 
-    constructor(name: string,costHouse:number,allCost : number[],price:number,color : ColorsProp){
+    constructor(id : number,name: string,costHouse:number,allCost : number[],price:number,color : ColorsProp){
+        this.id=id
         this.buyBy = -1;
         this.playerIn = -1;
         this.name = name;
