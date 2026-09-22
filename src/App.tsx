@@ -10,6 +10,7 @@ import Error from "./Error.tsx";
 import { Board } from "./Board.tsx";
 import { useEffect, useState } from "react";
 import DisplayCard from "./Components/Cards/DisplayCard.tsx";
+import RandomCard from "./Components/Cards/RandomCard.ts";
 
 
 export default function App() {
