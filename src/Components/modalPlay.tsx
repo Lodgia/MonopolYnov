@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { IoMdCloseCircleOutline } from "react-icons/io";
+import { IoMdCloseCircleOutline, IoMdPersonAdd } from "react-icons/io";
 import { IoReturnDownForward } from "react-icons/io5";
 import { MdAssignmentReturn } from "react-icons/md";
 import { TfiReload } from "react-icons/tfi";
@@ -14,6 +14,8 @@ export default function modalPlay({ onClose }: props) {
     const [joinCode, setJoinCode] = useState("")
     const [hostWindow, setHostWindow] = useState<"setting" | "managePlayer">("managePlayer")
     const codeLength = 5;
+
+    const [addPlayer, setAddPlayer] = useState(false)
 
     const generateInviteCode = async () => {
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -66,12 +68,12 @@ export default function modalPlay({ onClose }: props) {
                         </div>
                         <hr className="text-white w-full my-2" />
                         <div className="w-full flex items-center justify-around">
-                            <h3 onClick={() => setHostWindow("managePlayer")} className={`${hostWindow === "managePlayer" && "text-orange-500/80 border-b-2 border-b-orange-500"} cursor-pointer`}>Gestion des joueurs</h3>
-                            <h3 onClick={() => setHostWindow("setting")} className={`${hostWindow === "setting" && "text-orange-500/80 border-b-2 border-b-orange-500"} cursor-pointer`}>Paramètres de la partie</h3>
+                            <button onClick={() => setHostWindow("managePlayer")} className={`${hostWindow === "managePlayer" && "text-orange-500/80 border-b-2 border-b-orange-500"} cursor-pointer`}>Gestion des joueurs</button>
+                            <button onClick={() => setHostWindow("setting")} className={`${hostWindow === "setting" && "text-orange-500/80 border-b-2 border-b-orange-500"} cursor-pointer`}>Paramètres de la partie</button>
                         </div>
                         {hostWindow === "managePlayer" ? (
-                            <div className="w-full flex items-center justify-center border-r-5 my-5">
-                                <h3>Gestion des joueurs</h3>
+                            <div className="w-full flex items-center justify-start border-r-5 my-5">
+                                <button onClick={() => setAddPlayer(true)} className="flex items-center gap-3 cursor-pointer rounded-[8px] border-2 p-3 bg-slate-700 hover:bg-slate-700/60 transition duration-500"><IoMdPersonAdd />Inviter un joueur</button>
                             </div>
                         ) : (
                             <div className="w-full flex">
@@ -102,22 +104,23 @@ export default function modalPlay({ onClose }: props) {
                     </div>
                 )}
             </div>
+            {addPlayer && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-fadeIn">
+                    <div className=" w-2/7 m-auto p-5 rounded-[15px] font-bold text-white fixed inset-0 bg-gray-800 h-fit flex flex-col gap-7">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-center flex items-center justify-center">Ajout d'un joueur</h2>
+                            <button onClick={() => setAddPlayer(false)}><IoMdCloseCircleOutline /></button>
+                        </div>
+                        <div className="w-full flex">
+                            <div className="w-fit border-2 font-mono text-[20px] border-white/40 text-white/80 p-1.5 mt-1 flex items-center justify-between">
+                                <input className="w-full outline-none" required value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="Code de la partie" type="text" maxLength={codeLength} />
+                                <IoReturnDownForward onClick={handleJoinGame} className="mr-2 cursor-pointer" />
+                            </div>
+                            <input className="w-full" type="text" placeholder="Inviter un joueur par adresse mail / pseudo" />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-        // <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-fadeIn">
-        //     <div className=" w-4/7 m-auto p-5 rounded-[15px] font-bold text-white fixed inset-0 bg-gray-800 h-fit flex flex-col gap-7">
-        //         <div className="flex items-center justify-between">
-        //             <h2 className="text-center flex items-center justify-center">Configuration de la partie</h2>
-        //             <button onClick={onClose}><IoMdCloseCircleOutline/></button>
-        //         </div>
-        // <div className="w-full flex">
-        //     <div className="w-1/2 flex items-center justify-center">
-        //         <h3>Gestion des joueurs</h3>
-        //     </div>
-        //     <div className="w-1/2 flex items-center justify-center border-2">
-        //         <h3>Paramètres</h3>
-        //     </div>
-        // </div>
-        //     </div>
-        // </div>
     )
 }
