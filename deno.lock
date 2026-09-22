@@ -2,7 +2,6 @@
   "version": "5",
   "specifiers": {
     "npm:@tailwindcss/vite@^4.3.3": "4.3.3_vite@8.3.0_@types+node@24.13.4",
-    "npm:@types/node@^24.13.3": "24.13.4",
     "npm:@types/react-dom@^19.2.7": "19.3.0_@types+react@19.3.0",
     "npm:@types/react@^19.3.0": "19.3.0",
     "npm:@vitejs/plugin-react@^6.1.1": "6.1.1_vite@8.3.0_@types+node@24.13.4",
@@ -2371,15 +2370,21 @@
     }
   },
   "workspace": {
+    "dependencies": [
+      "npm:@neondatabase/serverless@^1.1.0"
+    ],
     "packageJson": {
       "dependencies": [
+        "npm:@neondatabase/serverless@^1.1.0",
         "npm:@tailwindcss/vite@^4.3.3",
-        "npm:@types/node@^24.13.3",
+        "npm:@types/node@^24.13.6",
         "npm:@types/react-dom@^19.2.7",
         "npm:@types/react@^19.3.0",
         "npm:@vitejs/plugin-react@^6.1.1",
         "npm:oxlint@^1.81.0",
+        "npm:process@~0.11.10",
         "npm:react-dom@^19.2.8",
+        "npm:react-icons@^5.7.0",
         "npm:react-router-dom@^7.18.4",
         "npm:react-router@^8.4.0",
         "npm:react@^19.2.8",
