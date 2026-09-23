@@ -95,7 +95,7 @@ export default function Rules() {
     return (
         <>
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm hidden"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="rules-title"

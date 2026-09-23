@@ -1,0 +1,11 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:@neondatabase/serverless@*": "1.1.0"
+  },
+  "npm": {
+    "@neondatabase/serverless@1.1.0": {
+      "integrity": "sha512-r3ZZhRjEcfEdKIZnoB1RusNgvHuaBRqfCzV4Gi+5A9yUX0S4HTws/ASWqt13wL4y4I+0rqsWGdA2w7EQXHi3+Q=="
+    }
+  }
+}

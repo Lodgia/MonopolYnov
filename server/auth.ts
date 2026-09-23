@@ -1,8 +1,8 @@
 // Authentication: sign up, log in, and a `requireAuth` guard used by every
 // protected route. Sessions are simple opaque bearer tokens stored in the
 // database (no JWT) — plenty for a local pedagogical server.
-import { db } from "./db.ts";
 import { HttpError, json, readJsonBody, requireString } from "./http.ts";
+import { sql } from "./neon_db.ts";
 
 export interface AuthUser {
   id: number;
@@ -47,20 +47,30 @@ export async function signup(req: Request): Promise<Response> {
   const password = requireString(body, "password");
   const profilePicture = typeof body.profilePicture === "string" ? body.profilePicture : null;
 
-  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
-  if (existing) throw new HttpError(409, "An account with this email already exists");
+  // Vérifier si l'utilisateur existe déjà
+  const existing = (await sql`
+    SELECT id FROM users WHERE email = ${email} LIMIT 1
+  `) as UserRow[];
+
+  if (existing.length > 0) {
+    throw new HttpError(409, "An account with this email already exists");
+  }
 
   const salt = randomHex(16);
   const passwordHash = await hashPassword(password, salt);
 
-  const result = db
-    .prepare(
-      "INSERT INTO users (email, password_hash, password_salt, profile_picture) VALUES (?, ?, ?, ?)",
-    )
-    .run(email, passwordHash, salt, profilePicture);
+  const [newUser] = (await sql`
+    INSERT INTO users (email, password_hash, password_salt, profile_picture)
+    VALUES (${email}, ${passwordHash}, ${salt}, ${profilePicture})
+    RETURNING id, email
+  `) as unknown as UserRow[];
 
-  const user: AuthUser = { id: Number(result.lastInsertRowid), email };
-  const token = createSession(user.id);
+  const user: AuthUser = {
+    id: Number(newUser.id),
+    email: newUser.email,
+  };
+
+  const token = await createSession(user.id);
 
   return json({ token, user }, 201);
 }
@@ -70,69 +80,93 @@ export async function login(req: Request): Promise<Response> {
   const email = requireString(body, "email").trim().toLowerCase();
   const password = requireString(body, "password");
 
-  const row = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as
-    | UserRow
-    | undefined;
-  if (!row) throw new HttpError(401, "Invalid email or password");
+  const rows = (await sql`
+    SELECT id, email, password_hash, password_salt, profile_picture
+    FROM users
+    WHERE email = ${email}
+    LIMIT 1
+  `) as unknown as UserRow[];
+
+  const row = rows[0];
+  if (!row) {
+    throw new HttpError(401, "Invalid email or password");
+  }
 
   const candidateHash = await hashPassword(password, row.password_salt);
   if (candidateHash !== row.password_hash) {
     throw new HttpError(401, "Invalid email or password");
   }
 
-  const token = createSession(row.id);
-  return json({ token, user: toAuthUser(row) });
+  const token = await createSession(row.id);
+
+  return json({
+    token,
+    user: toAuthUser(row),
+  });
 }
 
-function createSession(userId: number): string {
+export async function createSession(userId: number): Promise<string> {
   const token = randomHex(32);
-  db.prepare("INSERT INTO sessions (token, user_id) VALUES (?, ?)").run(token, userId);
+  await sql`
+    INSERT INTO sessions (token, user_id)
+    VALUES (${token}, ${userId})
+  `;
   return token;
 }
 
 /** Resolves the authenticated user from the `Authorization: Bearer <token>` header. */
-export function requireAuth(req: Request): AuthUser {
+export async function requireAuth(req: Request): Promise<AuthUser> {
   const header = req.headers.get("Authorization") ?? "";
   const [scheme, token] = header.split(" ");
   if (scheme !== "Bearer" || !token) {
     throw new HttpError(401, "Missing or malformed Authorization header");
   }
 
-  const row = db
-    .prepare(
-      `SELECT users.* FROM sessions
-       JOIN users ON users.id = sessions.user_id
-       WHERE sessions.token = ?`,
-    )
-    .get(token) as UserRow | undefined;
+  const rows = (await sql`
+    SELECT users.id, users.email, users.password_hash, users.password_salt, users.profile_picture
+    FROM sessions
+    JOIN users ON users.id = sessions.user_id
+    WHERE sessions.token = ${token}
+    LIMIT 1
+  `) as unknown as UserRow[];
 
-  if (!row) throw new HttpError(401, "Invalid or expired session token");
+  const row = rows[0];
+  if (!row) {
+    throw new HttpError(401, "Invalid or expired session token");
+  }
+
   return toAuthUser(row);
 }
 
-export function findUserByEmail(email: string): AuthUser | undefined {
-  const row = db.prepare("SELECT * FROM users WHERE email = ?").get(email.trim().toLowerCase()) as
-    | UserRow
-    | undefined;
+export async function findUserByEmail(email: string): Promise<AuthUser | undefined> {
+  const rows = (await sql`
+    SELECT id, email, password_hash, password_salt, profile_picture
+    FROM users
+    WHERE email = ${email.trim().toLowerCase()}
+    LIMIT 1
+  `) as unknown as UserRow[];
+
+  const row = rows[0];
   return row ? toAuthUser(row) : undefined;
 }
 
-export function checkSession(req: Request): Response {
-    const header = req.headers.get("Authorization") ?? "";
-    const [scheme, token] = header.split(" ");
+export async function checkSession(req: Request): Promise<Response> {
+  const header = req.headers.get("Authorization") ?? "";
+  const [scheme, token] = header.split(" ");
 
-    if (scheme !== "Bearer" || !token) {
-        return new Response("Unauthorized", { status: 401 });
-    }
+  if (scheme !== "Bearer" || !token) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-    // On cherche le token dans la DB
-    const session = db
-        .prepare("SELECT token FROM sessions WHERE token = ?")
-        .get(token);
+  const rows = await sql`
+    SELECT token FROM sessions
+    WHERE token = ${token}
+    LIMIT 1
+  `;
 
-    if (!session) {
-        return new Response("Unauthorized", { status: 401 });
-    }
+  if (rows.length === 0) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-    return json({ authenticated: true });
+  return json({ authenticated: true });
 }

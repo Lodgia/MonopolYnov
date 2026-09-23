@@ -90,7 +90,7 @@ function toGamePayload(row: GameRow, viewerId?: number) {
 }
 
 export async function createGame(req: Request): Promise<Response> {
-  const user = requireAuth(req);
+  const user = await requireAuth(req);
   const body = await readJsonBody(req);
   const minPlayers = requireInt(body, "minPlayers");
   const maxPlayers = requireInt(body, "maxPlayers");
@@ -113,7 +113,7 @@ export async function createGame(req: Request): Promise<Response> {
 }
 
 export async function inviteToGame(req: Request, gameId: number): Promise<Response> {
-  const user = requireAuth(req);
+  const user = await requireAuth(req);
   const game = getGameRow(gameId);
 
   if (game.status !== "pending") {
@@ -125,7 +125,7 @@ export async function inviteToGame(req: Request, gameId: number): Promise<Respon
 
   const body = await readJsonBody(req);
   const email = requireString(body, "email");
-  const invited = findUserByEmail(email);
+  const invited = await findUserByEmail(email);
   if (!invited) throw new HttpError(404, "No user with this email exists");
   if (isPlayer(gameId, invited.id)) {
     throw new HttpError(409, "This player is already in the game");
@@ -142,7 +142,7 @@ export async function inviteToGame(req: Request, gameId: number): Promise<Respon
 }
 
 export async function startGame(req: Request, gameId: number): Promise<Response> {
-  const user = requireAuth(req);
+  const user = await requireAuth(req);
   const game = getGameRow(gameId);
 
   if (game.creator_id !== user.id) {
@@ -178,8 +178,8 @@ export async function startGame(req: Request, gameId: number): Promise<Response>
 }
 
 /** Ongoing games for a user: pending, started, or ended-but-not-yet-seen. */
-export function listMyGames(req: Request): Response {
-  const user = requireAuth(req);
+export async function listMyGames(req: Request): Promise<Response> {
+  const user = await requireAuth(req);
   const rows = db
     .prepare(
       `SELECT games.* FROM games
@@ -193,8 +193,8 @@ export function listMyGames(req: Request): Response {
   return json(rows.map((row) => toGamePayload(row, user.id)));
 }
 
-export function markGameSeen(req: Request, gameId: number): Response {
-  const user = requireAuth(req);
+export async function markGameSeen(req: Request, gameId: number): Promise<Response> {
+  const user = await requireAuth(req);
   const game = getGameRow(gameId);
 
   if (!isPlayer(gameId, user.id)) {
@@ -212,8 +212,8 @@ export function markGameSeen(req: Request, gameId: number): Response {
   return noContent();
 }
 
-export function getGame(req: Request, gameId: number): Response {
-  const user = requireAuth(req);
+export async function getGame(req: Request, gameId: number): Promise<Response> {
+  const user = await requireAuth(req);
   const game = getGameRow(gameId);
 
   if (!isPlayer(gameId, user.id)) {
@@ -224,7 +224,7 @@ export function getGame(req: Request, gameId: number): Response {
 }
 
 export async function setGameState(req: Request, gameId: number): Promise<Response> {
-  const user = requireAuth(req);
+  const user = await requireAuth(req);
   const game = getGameRow(gameId);
 
   if (!isPlayer(gameId, user.id)) {
@@ -263,8 +263,8 @@ export async function setGameState(req: Request, gameId: number): Promise<Respon
   return json(toGamePayload(getGameRow(gameId), user.id));
 }
 
-export function listGameHistory(req: Request): Response {
-  const user = requireAuth(req);
+export async function listGameHistory(req: Request): Promise<Response> {
+  const user = await requireAuth(req);
   const rows = db
     .prepare(
       `SELECT games.* FROM games
