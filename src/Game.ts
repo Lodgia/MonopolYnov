@@ -40,7 +40,6 @@ interface CreateGameRequest {
     maxPlayers : number;
 }
 
-
 export async function createGame(
   data: CreateGameRequest
 ): Promise<Game> {
@@ -50,19 +49,16 @@ export async function createGame(
   });
 }
 
+interface JoinGameRequest {
+    email : string;
+}
 
-// Pour créer un partie : 
-
-//async function handleCreateGame() {
-//    try {
-//      const game = await createGame();
-
-//      console.log("Partie créée :", game);
-
-//    } catch (error) {
-//      console.error(
-//        "Erreur création partie :",
-//        error
-//      );
-//    }
-//  }
+export async function joinGameByEmail(
+    data : JoinGameRequest
+):Promise<Game> {
+    const gameId = 4
+    return apiFetch<Game>(`/games/${gameId}/invite`, {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+}
