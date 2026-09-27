@@ -1,23 +1,13 @@
 // Database setup with Neon (PostgreSQL).
 import { sql } from "./neon_db.ts";
-import { DatabaseSync } from "node:sqlite";
-import { fileURLToPath } from "node:url";
 
 export { sql };
-
-// Conservé temporairement pour assurer le fonctionnement de games.ts
-// jusqu'à sa migration complète vers Neon.
-const defaultDbPath = fileURLToPath(new URL("./game.db", import.meta.url));
-const dbPath = Deno.env.get("GAME_DB_PATH") ?? defaultDbPath;
-export const db = new DatabaseSync(dbPath);
 
 /**
  * Initialise le schéma PostgreSQL dans la base de données Neon.
  * Crée les tables users, sessions, games et game_players si elles n'existent pas.
  */
 export async function initDb(): Promise<void> {
-  console.log("Initialisation du schéma de la base Neon...");
-
   await sql`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -41,8 +31,8 @@ export async function initDb(): Promise<void> {
     CREATE TABLE IF NOT EXISTS games (
       id SERIAL PRIMARY KEY,
       creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      min_players INTEGER NOT NULL,
-      max_players INTEGER NOT NULL,
+      min_players INTEGER NOT NULL DEFAULT 2,
+      max_players INTEGER NOT NULL DEFAULT 4,
       status TEXT NOT NULL DEFAULT 'pending',
       state TEXT NOT NULL DEFAULT '',
       current_turn_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -62,7 +52,7 @@ export async function initDb(): Promise<void> {
       PRIMARY KEY (game_id, user_id)
     );
   `;
-
-  console.log("✅ Schéma Neon initialisé avec succès !");
 }
 
+// Initialise le schéma dès le démarrage du serveur
+await initDb();

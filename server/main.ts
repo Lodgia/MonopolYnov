@@ -10,11 +10,15 @@ import {
   createGame,
   getGame,
   inviteToGame,
+  joinGame,
   listGameHistory,
   listMyGames,
+  listOpenGames,
   markGameSeen,
+  removePlayer,
   setGameState,
   startGame,
+  updateGame,
 } from "./games.ts";
 
 type Handler = (req: Request, params: Record<string, string>) => Response | Promise<Response>;
@@ -26,7 +30,9 @@ interface Route {
 }
 
 function route(method: string, path: string, handler: Handler): Route {
-  return { method, pattern: new URLPattern({ pathname: path }), handler };
+  const normalizedPath = path === "/" ? "/" : (path.endsWith("/") ? path.slice(0, -1) : path);
+  const patternPath = normalizedPath === "/" ? "/" : `${normalizedPath}{/}?`;
+  return { method: method.toUpperCase(), pattern: new URLPattern({ pathname: patternPath }), handler };
 }
 
 const routes: Route[] = [
@@ -39,12 +45,19 @@ const routes: Route[] = [
 
   route("POST", "/games", (req) => createGame(req)),
   route("GET", "/games/mine", (req) => listMyGames(req)),
+  route("GET", "/games/open", (req) => listOpenGames(req)),
+  route("GET", "/games/pending", (req) => listOpenGames(req)),
   route("GET", "/games/history", (req) => listGameHistory(req)),
+  route("POST", "/games/:id/join", (req, p) => joinGame(req, Number(p.id))),
+  route("PATCH", "/games/:id", (req, p) => updateGame(req, Number(p.id))),
+  route("PUT", "/games/:id", (req, p) => updateGame(req, Number(p.id))),
+  route("DELETE", "/games/:id/players/:userId", (req, p) => removePlayer(req, Number(p.id), Number(p.userId))),
   route("POST", "/games/:id/invite", (req, p) => inviteToGame(req, Number(p.id))),
   route("POST", "/games/:id/start", (req, p) => startGame(req, Number(p.id))),
   route("POST", "/games/:id/seen", (req, p) => markGameSeen(req, Number(p.id))),
   route("GET", "/games/:id", (req, p) => getGame(req, Number(p.id))),
   route("PUT", "/games/:id/state", (req, p) => setGameState(req, Number(p.id))),
+  route("PATCH", "/games/:id/state", (req, p) => setGameState(req, Number(p.id))),
 ];
 
 async function handleRequest(req: Request): Promise<Response> {
@@ -53,9 +66,10 @@ async function handleRequest(req: Request): Promise<Response> {
   }
 
   const url = new URL(req.url);
+  const method = req.method.toUpperCase();
 
   for (const r of routes) {
-    if (r.method !== req.method) continue;
+    if (r.method !== method) continue;
     const match = r.pattern.exec(url);
     if (!match) continue;
     return await r.handler(req, match.pathname.groups as Record<string, string>);

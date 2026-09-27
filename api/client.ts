@@ -1,19 +1,19 @@
-const url = "http://localhost:8000"
+const url = "http://localhost:8000";
 
-export async function apiFetch<T> (
+export async function apiFetch<T>(
     endpoint: string,
     options: RequestInit = {}
 ): Promise<T> {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
 
     const response = await fetch(`${url}${endpoint}`, {
         ...options,
 
         headers: {
-            "Content-Type" : "application/json",
+            "Content-Type": "application/json",
 
             ...(token
-                ?{
+                ? {
                     Authorization: `Bearer ${token}`,
                 }
                 : {}),
@@ -23,14 +23,23 @@ export async function apiFetch<T> (
     });
 
     if (!response.ok) {
-        const error = await response.text();
+        const errorText = await response.text();
+        let message = errorText;
+        try {
+            const parsed = JSON.parse(errorText);
+            if (parsed && typeof parsed.error === "string") {
+                message = parsed.error;
+            }
+        } catch {
+            // Keep raw text
+        }
 
         throw new Error(
-            error || `HTTP error ${response.status}`
+            message || `HTTP error ${response.status}`
         );
     }
 
-    if (response.status == 204) {
+    if (response.status === 204) {
         return undefined as T;
     }
 
