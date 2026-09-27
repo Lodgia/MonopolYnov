@@ -294,11 +294,7 @@ export function Home({ players = [] }: HomeProps) {
         <div className="min-h-screen w-full bg-zinc-900 text-zinc-100 font-sans flex flex-col antialiased select-none">
             {/* 1. Header Minimal */}
             <header className="w-full px-6 py-3 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <span className="font-bold text-base tracking-tight text-white">MonopolYnov</span>
-                    <span className="text-xs text-zinc-500">Hub</span>
-                </div>
-
+                <span className="font-bold text-base tracking-tight text-white">MonopolYnov</span>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setRulesOpen(true)}
