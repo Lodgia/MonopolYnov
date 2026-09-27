@@ -2391,7 +2391,8 @@
         "npm:tailwind@4",
         "npm:tailwindcss@^4.3.3",
         "npm:typescript@~6.0.2",
-        "npm:vite@^8.3.0"
+        "npm:vite@^8.3.0",
+        "npm:vitest@^5.0.1"
       ]
     }
   }
