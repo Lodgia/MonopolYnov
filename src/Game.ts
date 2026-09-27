@@ -1,6 +1,6 @@
 import { apiFetch } from '../api/client'
 
-interface GamePlayer {
+export interface GamePlayer {
   id: number;
   email: string;
   profilePicture: string | null;

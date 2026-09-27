@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { findWinner, type Player } from "../src/Player.ts";
 import Rules from "../src/Rules.tsx";
