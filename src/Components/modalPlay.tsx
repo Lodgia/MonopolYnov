@@ -3,6 +3,8 @@ import { IoMdCloseCircleOutline, IoMdPersonAdd } from "react-icons/io";
 import { IoReturnDownForward } from "react-icons/io5";
 import { MdAssignmentReturn } from "react-icons/md";
 import { TfiReload } from "react-icons/tfi";
+import { createGame } from "../Game";
+
 
 type props = {
     onClose: () => void;
@@ -45,6 +47,24 @@ export default function modalPlay({ onClose }: props) {
         alert("Join de la game !")
     }
 
+    async function handleCreateGame() {
+        try {
+        const game = await createGame({
+            minPlayers: 2,
+            maxPlayers: 4,
+            // Ajouter la features de demander le nb de max et min a la creation de la game
+        });
+
+        console.log("Partie créée :", game);
+
+        } catch (error) {
+        console.error(
+            "Erreur création partie :",
+            error
+        );
+    }
+  }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-fadeIn">
             <div className=" w-1/3 m-auto p-5 rounded-[15px] font-bold text-white fixed inset-0 bg-gray-800 h-fit flex flex-col gap-7">
@@ -56,6 +76,7 @@ export default function modalPlay({ onClose }: props) {
                         </div>
                         <div className="w-full flex items-center justify-between">
                             <button onClick={() => { generateInviteCode(); setAction("host") }} className="border-2 p-5 bg-slate-700 hover:bg-slate-700/60 transition duration-500 cursor-pointer rounded-[8px]">Héberger une partie</button>
+                            <button onClick={handleCreateGame}>Créer un partie</button>
                             <button onClick={() => setAction("join")} className="border-2 p-5 bg-slate-700 hover:bg-slate-700/60 transition duration-500 cursor-pointer rounded-[8px]">Rejoindre une partie</button>
                         </div>
                     </div>
