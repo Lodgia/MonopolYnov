@@ -48,6 +48,10 @@ async function getGameRow(id: number): Promise<GameRow> {
     return row;
 }
 
+async function updatePasswprd(oldPassword: string, newPassword: string) {
+    
+}
+
 async function getPlayers(gameId: number): Promise<PlayerRow[]> {
     return (await sql`
         SELECT users.id, users.email, users.profile_picture
