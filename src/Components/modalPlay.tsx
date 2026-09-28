@@ -65,21 +65,17 @@ export default function ModalPlay({ onClose }: Props) {
     const [copied, setCopied] = useState(false);
     const [settingsSaved, setSettingsSaved] = useState(false);
 
-    // Solo game state
     const [soloBotCount, setSoloBotCount] = useState(2);
     const [soloDifficulty, setSoloDifficulty] = useState<"easy" | "medium" | "hard">("medium");
 
-    // Modal state for adding a player
     const [addPlayerModal, setAddPlayerModal] = useState(false);
     const [mailAddPlayer, setMailAddPlayer] = useState("");
     const [inviteLoading, setInviteLoading] = useState(false);
 
-    // Game settings state
     const [settings, setSettings] = useState<GameSettings & { theme?: string; bots?: BotPlayer[] }>(DEFAULT_SETTINGS);
     const [minPlayers, setMinPlayers] = useState(2);
     const [maxPlayers, setMaxPlayers] = useState(4);
 
-    // Load user's ongoing games on choice screen
     useEffect(() => {
         if (action === "choice") {
             listMyGames()
@@ -88,7 +84,6 @@ export default function ModalPlay({ onClose }: Props) {
         }
     }, [action]);
 
-    // Parse settings from game.state if available
     const parseGameSettings = (game: Game) => {
         try {
             if (game.state) {
@@ -99,7 +94,7 @@ export default function ModalPlay({ onClose }: Props) {
                 }
             }
         } catch {
-            // Keep default
+            //
         }
         setSettings(DEFAULT_SETTINGS);
     };
@@ -147,14 +142,12 @@ export default function ModalPlay({ onClose }: Props) {
                 bots: selectedBots,
             });
 
-            // Minimum 1 human player
             const game = await createGame({
                 minPlayers: 1,
                 maxPlayers: soloBotCount + 1,
                 state: statePayload,
             });
 
-            // Start immediately
             await startGame(game.id, statePayload);
             onClose();
             navigate("/board");
@@ -321,7 +314,6 @@ export default function ModalPlay({ onClose }: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fadeIn p-4">
             <div className="w-full max-w-2xl p-6 rounded-[24px] font-bold text-white bg-gray-800/95 border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col gap-5 transition-all duration-300">
                 
-                {/* 1. CHOIX DU MODE (ACCUEIL) */}
                 {action === "choice" && (
                     <div className="w-full flex flex-col gap-5">
                         <div className="flex items-center justify-between">
@@ -341,7 +333,6 @@ export default function ModalPlay({ onClose }: Props) {
                             </button>
                         </div>
 
-                        {/* 3 Cartes de Mode de Jeu */}
                         <div className="grid grid-cols-3 gap-3.5 mt-1">
                             {/* Mode Solo */}
                             <button
