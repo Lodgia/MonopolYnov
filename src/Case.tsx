@@ -1,6 +1,7 @@
 import { Player } from "./Player.ts";
 import { property, Square } from "./Property.ts";
 
+
 interface CaseProps {
   property: Square;
   players: Player[];
