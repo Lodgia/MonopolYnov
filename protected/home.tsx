@@ -17,6 +17,8 @@ import { VictoryModal } from "../src/VictoryModal.tsx";
 import { findWinner, type Player } from "../src/Player.ts";
 import Settings from "../src/Components/Settings.tsx";
 import History from "../src/History.tsx";
+import { monopolyBoard } from "../src/allCases.ts";
+import type { SyncedPlayer, SyncedGameState, PropertyState } from "../src/GameContext.tsx";
 import { apiFetch } from "../api/client.ts";
 
 export interface BotPlayer {
@@ -121,21 +123,35 @@ export function Home({ players = [] }: HomeProps) {
         const interval = setInterval(async () => {
             try {
                 const updated = await getGame(currentGame.id);
+                // Si l'utilisateur actuel a été expulsé par l'hôte du salon
+                if (currentUserId && !updated.players.some((p) => p.id === currentUserId)) {
+                    setShowHostModal(false);
+                    setCurrentGame(null);
+                    alert("Vous avez été expulsé du salon.");
+                    fetchGames();
+                    return;
+                }
                 setCurrentGame(updated);
                 setMaxPlayers(updated.maxPlayers);
                 if (updated.status === "started") {
                     setShowHostModal(false);
                     navigate(`/game/${updated.id}`);
                 }
-            } catch {}
+            } catch {
+                // Erreur 403 lorsque l'utilisateur est retiré de la table game_players
+                setShowHostModal(false);
+                setCurrentGame(null);
+                alert("Vous avez été expulsé du salon.");
+                fetchGames();
+            }
         }, 1000);
         return () => clearInterval(interval);
-    }, [currentGame?.id, navigate]);
+    }, [currentGame?.id, currentUserId, navigate]);
 
     const handleOpenHostModal = async () => {
         setLoading(true);
         try {
-            const statePayload = JSON.stringify({ settings, bots, color: userColor });
+            const statePayload = JSON.stringify({ settings, color: userColor });
             const game = await createGame({
                 minPlayers: 2,
                 maxPlayers,
@@ -195,7 +211,7 @@ export function Home({ players = [] }: HomeProps) {
         if (!currentGame) return;
         setLoading(true);
         try {
-            const defaultColors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-orange-500"];
+            const defaultColors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-orange-500", "bg-purple-500", "bg-pink-500"];
             const gamePlayers: SyncedPlayer[] = currentGame.players.map((p, idx) => ({
                 id: p.id,
                 name: p.email.split("@")[0],
@@ -206,24 +222,6 @@ export function Home({ players = [] }: HomeProps) {
                 jailTurns: 0,
                 isBot: false,
             }));
-
-            if (bots && gamePlayers.length < maxPlayers) {
-                const botNames = ["Robot Alpha", "Robot Beta", "Robot Gamma"];
-                const botColors = ["bg-amber-500", "bg-purple-500", "bg-pink-500"];
-                const needed = maxPlayers - gamePlayers.length;
-                for (let i = 0; i < needed; i++) {
-                    gamePlayers.push({
-                        id: 990 + i,
-                        name: botNames[i % botNames.length],
-                        c: 0,
-                        money: 1500,
-                        color: botColors[i % botColors.length],
-                        inJail: false,
-                        jailTurns: 0,
-                        isBot: true,
-                    });
-                }
-            }
 
             const initialProperties: Record<number, PropertyState> = {};
             monopolyBoard.forEach((sq) => {
@@ -250,7 +248,7 @@ export function Home({ players = [] }: HomeProps) {
             setShowHostModal(false);
             navigate(`/game/${currentGame.id}`);
         } catch (error) {
-            const msg = error instanceof Error ? error.message : "Impossible de démarrer";
+            const msg = error instanceof Error ? error.message : "Impossible de démarrer la partie";
             alert(msg);
         } finally {
             setLoading(false);
@@ -264,7 +262,7 @@ export function Home({ players = [] }: HomeProps) {
 
         if (currentGame) {
             try {
-                const statePayload = JSON.stringify({ settings: updated, bots, color: userColor });
+                const statePayload = JSON.stringify({ settings: updated, color: userColor });
                 const updatedGame = await updateGame(currentGame.id, {
                     maxPlayers,
                     state: statePayload,
@@ -451,11 +449,6 @@ export function Home({ players = [] }: HomeProps) {
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-black">Autoriser les bots</span>
-                                    <input type="checkbox" checked={settings.allowBots} onChange={(e) => updateSettingsField("allowBots", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
-                                </div>
-
-                                <div className="flex items-center justify-between">
                                     <span className="text-black">Loyer x2 sur groupe</span>
                                     <input type="checkbox" checked={settings.doubleRentFullSet} onChange={(e) => updateSettingsField("doubleRentFullSet", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
                                 </div>
@@ -563,15 +556,7 @@ export function Home({ players = [] }: HomeProps) {
             <VictoryModal winner={winner} />
             <Rules isOpen={rulesOpen} onClose={() => setRulesOpen(false)} />
             <History isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
-            {settingOpen && (
-                <Settings
-                    onClose={() => {
-                        setSettingsOpen(false);
-                        const c = localStorage.getItem("user_color");
-                        if (c) setUserColor(c);
-                    }}
-                />
-            )}
+            {settingOpen && ( <Settings onClose={() => { setSettingsOpen(false); const c = localStorage.getItem("user_color"); if (c) setUserColor(c); }} /> )}
         </div>
     );
 }
