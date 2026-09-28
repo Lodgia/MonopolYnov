@@ -2,6 +2,7 @@
 import { Case } from "./Case.tsx";
 import { Player } from "./Player.ts";
 import {monopolyBoard} from "./allCases.ts"
+import {Des} from "./Des.tsx"
 
 
 export function Board(){
@@ -10,6 +11,7 @@ export function Board(){
     let player2 = new Player(2,"p2",4,3500,"bg-red-500")
     let player3 = new Player(3,"p3",17,3500,"bg-green-500")
     let player4 = new Player(4,"p4",18,3500,"bg-orange-500")
+    let scorePlayer = 0
     let players = [player1,player2,player3,player4]
 
     return (
@@ -61,7 +63,7 @@ export function Board(){
         <div className="col-start-1 row-start-3 w-full h-full"><Case players={players} property={monopolyBoard[38]} position="right"/></div>
         <div className="col-start-1 row-start-2 w-full h-full"><Case players={players} property={monopolyBoard[39]} position="right"/></div>
 
-        <div className="col-start-2 col-end-11 row-start-2 row-end-11 ">Center
+        <div className="col-start-2 col-end-11 row-start-2 row-end-11 "><Des score={scorePlayer}/>
         </div>
 
     </div>
