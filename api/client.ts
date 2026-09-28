@@ -30,9 +30,7 @@ export async function apiFetch<T>(
             if (parsed && typeof parsed.error === "string") {
                 message = parsed.error;
             }
-        } catch {
-            // Keep raw text
-        }
+        } catch {}
 
         throw new Error(
             message || `HTTP error ${response.status}`
