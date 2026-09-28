@@ -9,6 +9,7 @@ import PropertyDeedModal from "./Components/Cards/PropertyDeedModal.tsx";
 import DisplayCard from "./Components/Cards/DisplayCard.tsx";
 import Rules from "./Rules.tsx";
 import History from "./History.tsx";
+import VictoryModal from "./VictoryModal.tsx";
 import type { Square } from "./Property.ts";
 
 function BoardInner({ gameId }: { gameId?: string }) {
@@ -232,6 +233,17 @@ function BoardInner({ gameId }: { gameId?: string }) {
 
             {/* Modale Historique */}
             <History isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
+
+            {/* Modale Victoire Monopoly DA */}
+            {gameState.winnerId && (
+                <VictoryModal
+                    winner={
+                        gameState.players.find((p) => p.id === gameState.winnerId) ?? {
+                            name: `Joueur #${gameState.winnerId}`,
+                        }
+                    }
+                />
+            )}
         </div>
     );
 }

@@ -1,63 +1,96 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface DisplayCardProps {
     cardLabel: string;
     cardType: "chance" | "community" | "luckyCards" | "communityCards" | string;
     onClose?: () => void;
     onDismiss?: () => void;
+    autoCloseDuration?: number; // duration in seconds (default 5)
 }
 
-export default function DisplayCard({ cardLabel, cardType, onClose, onDismiss }: DisplayCardProps) {
+export default function DisplayCard({
+    cardLabel,
+    cardType,
+    onClose,
+    onDismiss,
+    autoCloseDuration = 5,
+}: DisplayCardProps) {
+    const [timeLeft, setTimeLeft] = useState(autoCloseDuration);
+
     const handleClose = () => {
         onClose?.();
         onDismiss?.();
     };
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    handleClose();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const isChance = cardType === "chance" || cardType === "luckyCards";
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in duration-200 select-none"
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm select-none font-sans"
+            role="dialog"
+            aria-modal="true"
             onClick={handleClose}
         >
             <div
-                className={`w-full max-w-sm rounded-xl border-4 ${
-                    isChance ? "border-orange-500 bg-amber-50" : "border-blue-600 bg-blue-50"
-                } p-5 text-zinc-900 shadow-2xl transition-transform transform scale-100`}
+                className="w-full max-w-sm bg-white border-3 border-red-500 p-5 flex flex-col gap-4 shadow-2xl relative"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header Carte Monopoly */}
-                <div
-                    className={`-mx-5 -mt-5 mb-4 rounded-t-lg py-2.5 px-4 text-center font-black uppercase tracking-widest text-white ${
-                        isChance ? "bg-orange-500" : "bg-blue-600"
-                    }`}
-                >
-                    <span className="text-xs">{isChance ? "❓ CARTE CHANCE ❓" : "🎁 CAISSE DE COMMUNAUTÉ 🎁"}</span>
+                <div className="flex items-center justify-between border-b border-zinc-700 pb-2">
+                    <span className="font-black text-xs text-red-500 uppercase tracking-widest">
+                        {isChance ? "❓ CARTE CHANCE ❓" : "🎁 CAISSE DE COMMUNAUTÉ 🎁"}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-zinc-500">
+                        {timeLeft}s
+                    </span>
                 </div>
 
-                {/* Corps de la carte */}
-                <div className="flex flex-col items-center gap-4 text-center py-2">
+                {/* Corps de la carte dans le panneau bleu-300 */}
+                <div className="bg-blue-300 border-3 border-red-500 p-4 flex flex-col items-center gap-3 text-center">
                     <div className="text-3xl">
                         {isChance ? "🎲" : "💼"}
                     </div>
 
-                    <p className="text-sm font-semibold leading-relaxed text-zinc-800 px-2">
-                        {cardLabel}
-                    </p>
+                    <div className="bg-white border-2 border-red-500 p-3 w-full shadow-sm">
+                        <p className="text-xs font-bold leading-relaxed text-zinc-900">
+                            {cardLabel}
+                        </p>
+                    </div>
                 </div>
 
-                {/* Bouton de confirmation */}
-                <div className="mt-5 pt-3 border-t border-zinc-200">
+                {/* Barre de progression du timer */}
+                <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
+                    <div
+                        className="bg-red-500 h-full transition-all duration-1000 ease-linear"
+                        style={{ width: `${(timeLeft / autoCloseDuration) * 100}%` }}
+                    />
+                </div>
+
+                {/* Bouton de confirmation DA */}
+                <div className="border-2 border-blue-500 w-full">
                     <button
                         type="button"
                         onClick={handleClose}
-                        className={`w-full py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider text-white shadow transition-all cursor-pointer ${
-                            isChance
-                                ? "bg-orange-600 hover:bg-orange-700 active:scale-95"
-                                : "bg-blue-600 hover:bg-blue-700 active:scale-95"
-                        }`}
+                        className="inline-block border-2 border-white text-xs font-bold p-2 bg-blue-500 text-white w-full cursor-pointer hover:bg-blue-600 transition"
                     >
-                        Continuer
+                        Continuer ({timeLeft}s)
                     </button>
                 </div>
             </div>

@@ -4,6 +4,22 @@ import { property, SpecialSquare } from "./Property.ts";
 import { drawCard } from "./Components/Cards/RandomCard.ts";
 import { getGame, setGameState, getMeUser, type UserMe } from "./Game.ts";
 
+export const PAWN_PALETTE = [
+    "#ef4444", // Rouge Monopoly
+    "#3b82f6", // Bleu Roi
+    "#10b981", // Vert Émeraude
+    "#f59e0b", // Jaune Ambré
+    "#8b5cf6", // Violet
+    "#ec4899", // Rose
+    "#06b6d4", // Cyan
+    "#84cc16", // Lime
+];
+
+export function getUniquePawnColors(count: number): string[] {
+    const shuffled = [...PAWN_PALETTE].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+}
+
 export interface SyncedPlayer {
     id: number;
     name: string;
@@ -27,6 +43,7 @@ export interface SyncedGameState {
     properties: Record<number, PropertyState>;
     currentTurnPlayerId: number;
     hasRolled: boolean;
+    canRollAgain?: boolean;
     diceRoll: { dice1: number; dice2: number; total: number } | null;
     doubleCount: number;
     lastActionMessage: string;
@@ -44,6 +61,7 @@ export interface GameContextValue {
     me: UserMe | null;
     isMyTurn: boolean;
     activePlayer: SyncedPlayer | null;
+    canRollAgain: boolean;
     rollDice: () => void;
     buyCurrentProperty: () => void;
     upgradeProperty: (squareId: number) => void;
@@ -61,15 +79,17 @@ monopolyBoard.forEach((sq) => {
     }
 });
 
+const defaultInitialColors = getUniquePawnColors(2);
 const defaultInitialState: SyncedGameState = {
     version: 1,
     players: [
-        { id: 1, name: "Joueur 1", c: 0, money: 1500, color: "bg-blue-500", inJail: false, jailTurns: 0 },
-        { id: 2, name: "Joueur 2", c: 0, money: 1500, color: "bg-red-500", inJail: false, jailTurns: 0 },
+        { id: 1, name: "Joueur 1", c: 0, money: 1500, color: defaultInitialColors[0], inJail: false, jailTurns: 0 },
+        { id: 2, name: "Joueur 2", c: 0, money: 1500, color: defaultInitialColors[1], inJail: false, jailTurns: 0 },
     ],
     properties: defaultProperties,
     currentTurnPlayerId: 1,
     hasRolled: false,
+    canRollAgain: false,
     diceRoll: null,
     doubleCount: 0,
     lastActionMessage: "La partie est prête. À vous de jouer !",
@@ -99,7 +119,7 @@ export const GameProvider = ({
         }
         return defaultInitialState;
     });
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading] = useState(false);
     const isBotRunningRef = useRef(false);
 
     // 1. Fetch current logged-in user
@@ -107,7 +127,7 @@ export const GameProvider = ({
         getMeUser()
             .then((u) => setMe(u))
             .catch(() => {
-                setMe({ id: 1, email: "joueur@monopolynov.local", profilePicture: null, color: "bg-blue-500" });
+                setMe({ id: 1, email: "joueur@monopolynov.local", profilePicture: null, color: "#ef4444" });
             });
     }, []);
 
@@ -128,7 +148,9 @@ export const GameProvider = ({
                             if (
                                 parsed.version > prev.version ||
                                 parsed.currentTurnPlayerId !== prev.currentTurnPlayerId ||
-                                parsed.hasRolled !== prev.hasRolled
+                                parsed.hasRolled !== prev.hasRolled ||
+                                parsed.winnerId !== prev.winnerId ||
+                                JSON.stringify(parsed.activeCard) !== JSON.stringify(prev.activeCard)
                             ) {
                                 return parsed;
                             }
@@ -140,13 +162,13 @@ export const GameProvider = ({
                 } else if (g.players && g.players.length > 0) {
                     setGameStateLocal((prev) => {
                         if (prev.players.length === g.players.length) return prev;
-                        const defaultColors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-orange-500"];
+                        const uniqueColors = getUniquePawnColors(g.players.length);
                         const syncedP: SyncedPlayer[] = g.players.map((p, idx) => ({
                             id: p.id,
                             name: p.email.split("@")[0],
                             c: 0,
                             money: 1500,
-                            color: p.color || defaultColors[idx % defaultColors.length],
+                            color: p.color || uniqueColors[idx],
                             inJail: false,
                             jailTurns: 0,
                         }));
@@ -163,7 +185,7 @@ export const GameProvider = ({
         };
 
         fetchRemote();
-        const interval = setInterval(fetchRemote, 1200);
+        const interval = setInterval(fetchRemote, 1000);
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -173,6 +195,7 @@ export const GameProvider = ({
     // Active player and turn checking
     const activePlayer = gameState.players.find((p) => p.id === gameState.currentTurnPlayerId) ?? gameState.players[0] ?? null;
     const isMyTurn = !gameId || (me !== null && activePlayer?.id === me.id) || (activePlayer?.isBot === true);
+    const canRollAgain = !!gameState.canRollAgain;
 
     // Save and synchronize state
     const syncState = useCallback(
@@ -226,7 +249,7 @@ export const GameProvider = ({
 
     // 3. Roll Dice logic
     const rollDice = useCallback(() => {
-        if (!activePlayer || gameState.hasRolled || !isMyTurn) return;
+        if (!activePlayer || (!canRollAgain && gameState.hasRolled) || !isMyTurn) return;
 
         const dice1 = Math.floor(Math.random() * 6) + 1;
         const dice2 = Math.floor(Math.random() * 6) + 1;
@@ -240,6 +263,7 @@ export const GameProvider = ({
         let newDoubleCount = isDouble ? gameState.doubleCount + 1 : 0;
         let actionMsg = "";
         let drawnCard: { type: "chance" | "community"; title: string; label: string } | null = null;
+        let isNowInJail = p.inJail;
 
         // In Jail handling
         if (p.inJail) {
@@ -264,6 +288,7 @@ export const GameProvider = ({
                         version: gameState.version + 1,
                         players: newPlayers,
                         hasRolled: true,
+                        canRollAgain: false,
                         diceRoll: { dice1, dice2, total },
                         doubleCount: 0,
                         lastActionMessage: actionMsg,
@@ -285,6 +310,7 @@ export const GameProvider = ({
                     version: gameState.version + 1,
                     players: newPlayers,
                     hasRolled: true,
+                    canRollAgain: false,
                     diceRoll: { dice1, dice2, total },
                     doubleCount: 0,
                     lastActionMessage: actionMsg,
@@ -301,7 +327,7 @@ export const GameProvider = ({
             }
 
             const landedSq = monopolyBoard[p.c];
-            actionMsg = `${p.name} a fait ${total} (${dice1}+${dice2}) et s'arrête sur "${landedSq.name}"${
+            actionMsg = `${p.name} a fait ${total} (${dice1}+${dice2})${isDouble ? " 🎲 Double !" : ""} et s'arrête sur "${landedSq.name}"${
                 passedGo ? " (+200 € Départ)" : ""
             }.`;
 
@@ -309,6 +335,7 @@ export const GameProvider = ({
                 p.c = 10;
                 p.inJail = true;
                 p.jailTurns = 0;
+                isNowInJail = true;
                 actionMsg += ` 👮 Allez en prison !`;
             } else if (landedSq.id === 4) {
                 p.money = Math.max(0, p.money - 200);
@@ -319,7 +346,7 @@ export const GameProvider = ({
             } else if (landedSq.type === "special") {
                 const spec = landedSq as SpecialSquare;
                 if (spec.subType === "chance" || spec.subType === "community") {
-                    const card = drawCard(spec.subType);
+                    const card = drawCard(spec.subType, p.name);
                     drawnCard = {
                         type: spec.subType,
                         title: spec.subType === "chance" ? "Carte Chance" : "Caisse de Communauté",
@@ -333,6 +360,7 @@ export const GameProvider = ({
                         p.c = 10;
                         p.inJail = true;
                         p.jailTurns = 0;
+                        isNowInJail = true;
                     } else if (card.moveTo !== undefined) {
                         p.c = card.moveTo;
                     }
@@ -356,12 +384,16 @@ export const GameProvider = ({
 
         newPlayers[pIndex] = p;
 
+        // Double roll allows property buying AND rolling again!
+        const willCanRollAgain = isDouble && newDoubleCount < 3 && !isNowInJail;
+
         const nextSt: SyncedGameState = {
             ...gameState,
             version: gameState.version + 1,
             players: newPlayers,
             properties: newProps,
-            hasRolled: !isDouble || newDoubleCount >= 3,
+            hasRolled: true,
+            canRollAgain: willCanRollAgain,
             diceRoll: { dice1, dice2, total },
             doubleCount: newDoubleCount,
             lastActionMessage: actionMsg,
@@ -369,9 +401,9 @@ export const GameProvider = ({
         };
 
         syncState(nextSt);
-    }, [activePlayer, gameState, isMyTurn, syncState, calculateRent]);
+    }, [activePlayer, gameState, isMyTurn, canRollAgain, syncState, calculateRent]);
 
-    // 4. Buy property logic
+    // 4. Buy property logic (works even after double roll!)
     const buyCurrentProperty = useCallback(() => {
         if (!activePlayer || !isMyTurn) return;
 
@@ -464,6 +496,7 @@ export const GameProvider = ({
     const endTurn = useCallback(() => {
         if (!activePlayer || !gameState.hasRolled || !isMyTurn) return;
 
+        // Check for bankrupt players (money <= 0 with debts)
         const activePlayersList = gameState.players.filter((p) => !p.isBankrupt && p.money >= 0);
         if (activePlayersList.length <= 1) {
             const winner = activePlayersList[0] || activePlayer;
@@ -486,6 +519,7 @@ export const GameProvider = ({
             version: gameState.version + 1,
             currentTurnPlayerId: nextPlayer.id,
             hasRolled: false,
+            canRollAgain: false,
             diceRoll: null,
             doubleCount: 0,
             activeCard: null,
@@ -496,46 +530,27 @@ export const GameProvider = ({
     }, [activePlayer, gameState, isMyTurn, syncState]);
 
     const closeActiveCard = useCallback(() => {
-        setGameStateLocal((prev) => ({ ...prev, activeCard: null }));
-    }, []);
+        const nextSt = { ...gameState, version: gameState.version + 1, activeCard: null };
+        syncState(nextSt);
+    }, [gameState, syncState]);
 
     const resetGame = useCallback(() => {
+        const uniqueColors = getUniquePawnColors(gameState.players.length);
         const nextSt: SyncedGameState = {
             ...defaultInitialState,
-            players: gameState.players.map((p) => ({ ...p, c: 0, money: 1500, inJail: false, jailTurns: 0 })),
+            players: gameState.players.map((p, idx) => ({
+                ...p,
+                c: 0,
+                money: 1500,
+                color: uniqueColors[idx] || p.color,
+                inJail: false,
+                jailTurns: 0,
+            })),
             properties: defaultProperties,
             currentTurnPlayerId: gameState.players[0]?.id ?? 1,
         };
         syncState(nextSt);
     }, [gameState.players, syncState]);
-
-    // 8. Bot Automation (Solo vs IA)
-    useEffect(() => {
-        if (!activePlayer?.isBot || isBotRunningRef.current) return;
-
-        isBotRunningRef.current = true;
-        const botTimer = setTimeout(() => {
-            rollDice();
-
-            const actionTimer = setTimeout(() => {
-                buyCurrentProperty();
-
-                const endTimer = setTimeout(() => {
-                    endTurn();
-                    isBotRunningRef.current = false;
-                }, 1000);
-
-                return () => clearTimeout(endTimer);
-            }, 1000);
-
-            return () => clearTimeout(actionTimer);
-        }, 1200);
-
-        return () => {
-            clearTimeout(botTimer);
-            isBotRunningRef.current = false;
-        };
-    }, [activePlayer, rollDice, buyCurrentProperty, endTurn]);
 
     const value: GameContextValue = {
         gameState,
@@ -543,6 +558,7 @@ export const GameProvider = ({
         me,
         isMyTurn,
         activePlayer,
+        canRollAgain,
         rollDice,
         buyCurrentProperty,
         upgradeProperty,

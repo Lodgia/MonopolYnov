@@ -18,7 +18,7 @@ import { findWinner, type Player } from "../src/Player.ts";
 import Settings from "../src/Components/Settings.tsx";
 import History from "../src/History.tsx";
 import { monopolyBoard } from "../src/allCases.ts";
-import type { SyncedPlayer, SyncedGameState, PropertyState } from "../src/GameContext.tsx";
+import { getUniquePawnColors, type SyncedPlayer, type SyncedGameState, type PropertyState } from "../src/GameContext.tsx";
 import { apiFetch } from "../api/client.ts";
 
 export interface BotPlayer {
@@ -211,13 +211,13 @@ export function Home({ players = [] }: HomeProps) {
         if (!currentGame) return;
         setLoading(true);
         try {
-            const defaultColors = ["bg-blue-500", "bg-red-500", "bg-green-500", "bg-orange-500", "bg-purple-500", "bg-pink-500"];
+            const uniqueColors = getUniquePawnColors(currentGame.players.length);
             const gamePlayers: SyncedPlayer[] = currentGame.players.map((p, idx) => ({
                 id: p.id,
                 name: p.email.split("@")[0],
                 c: 0,
                 money: 1500,
-                color: p.color || defaultColors[idx % defaultColors.length],
+                color: uniqueColors[idx] || p.color || "#ef4444",
                 inJail: false,
                 jailTurns: 0,
                 isBot: false,
