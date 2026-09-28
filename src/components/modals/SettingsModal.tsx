@@ -145,7 +145,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5 text-xs">
                             <span className="font-semibold text-red-500 border-b border-zinc-750 pb-1">
-                                Modifier votre Pseudo
+                                Modifier votre Mail
                             </span>
 
                             <div className="flex flex-col gap-2">

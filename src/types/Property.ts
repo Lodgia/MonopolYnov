@@ -19,7 +19,7 @@ export const colorClasses: Record<string, string> = {
     yellow: "bg-amber-300",
     blue: "bg-blue-500",
     green: "bg-green-500",
-    "": "bg-zinc-700",
+    zinc: "bg-zinc-700",
 };
 
 export const colorNamesFr: Record<string, string> = {
@@ -31,7 +31,7 @@ export const colorNamesFr: Record<string, string> = {
     yellow: "Jaune",
     green: "Vert",
     blue: "Bleu foncé",
-    "": "Spécial",
+    special: "Spécial",
 };
 
 export interface Square {
@@ -59,15 +59,7 @@ export class property implements Square {
     level: number;
     action?: (context: SquareActionContext) => number;
 
-    constructor(
-        id: number,
-        name: string,
-        type: "property" | "station" | "utility",
-        costHouse: number,
-        allCost: number[],
-        price: number,
-        color: ColorsProp
-    ) {
+    constructor( id: number, name: string, type: "property" | "station" | "utility", costHouse: number, allCost: number[], price: number, color: ColorsProp ) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -87,12 +79,10 @@ export class property implements Square {
 
             let rent = 0;
             if (this.type === "utility") {
-                const ownedUtilities = players.flatMap((candidate) => candidate.haveProp)
-                    .filter((owned) => owned.type === "utility" && owned.buyBy === owner.id).length;
+                const ownedUtilities = players.flatMap((candidate) => candidate.haveProp).filter((owned) => owned.type === "utility" && owned.buyBy === owner.id).length;
                 rent = diceTotal * (ownedUtilities > 1 ? 10 : 4);
             } else {
-                const ownedInGroup = players.flatMap((candidate) => candidate.haveProp)
-                    .filter((owned) => owned.type === this.type && owned.buyBy === owner.id).length;
+                const ownedInGroup = players.flatMap((candidate) => candidate.haveProp).filter((owned) => owned.type === this.type && owned.buyBy === owner.id).length;
                 const rentIndex = this.type === "station" ? Math.max(0, ownedInGroup - 1) : this.level;
                 rent = this.allCost[Math.min(rentIndex, this.allCost.length - 1)] ?? 0;
             }
@@ -143,11 +133,7 @@ export class SpecialSquare implements Square {
     subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail";
     action?: (context: SquareActionContext) => number;
 
-    constructor(
-        id: number,
-        name: string,
-        subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail"
-    ) {
+    constructor( id: number, name: string, subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail" ) {
         this.id = id;
         this.name = name;
         this.type = "special";
@@ -178,11 +164,7 @@ export class SpecialSquare implements Square {
                 return 0;
             }
             if (card.destination !== undefined) {
-                const destination = card.destination === -1
-                    ? [5, 15, 25, 35].find((station) => station > player.c) ?? 5
-                    : (card.destination < 0
-                        ? (player.c + card.destination + 40) % 40
-                        : card.destination);
+                const destination = card.destination === -1  ? [5, 15, 25, 35].find((station) => station > player.c) ?? 5 : (card.destination < 0 ? (player.c + card.destination + 40) % 40 : card.destination);
                 const passedStart = card.passStart && destination > 0 && destination < player.c;
                 player.c = destination;
                 return (card.amount ?? 0) + (passedStart ? 200 : 0);
