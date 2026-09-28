@@ -33,7 +33,7 @@ export const monopolyBoard: Square[] = [
     /* 26 */ new property(26, "Faubourg Saint-Honoré", "property", 150, [22, 110, 330, 800, 975, 1150], 260, "yellow"),
     /* 27 */ new property(27, "Place de la Bourse", "property", 150, [22, 110, 330, 800, 975, 1150], 260, "yellow"),
     /* 28 */ new property(28, "Compagnie de Distribution des Eaux", "utility", 0, [4, 10], 150, ""),
-    /* 29 */ new property(29, "Avenue de la République" /* Version FR: Rue La Fayette */, "property", 150, [24, 120, 360, 850, 1025, 1200], 280, "yellow"),
+    /* 29 */ new property(29, "Avenue de la République", "property", 150, [24, 120, 360, 850, 1025, 1200], 280, "yellow"),
     
     /* 30 */ new SpecialSquare(30, "Allez en Prison", "go-to-jail"),
     /* 31 */ new property(31, "Avenue de Bréteuil", "property", 200, [26, 130, 390, 900, 1100, 1275], 300, "green"),

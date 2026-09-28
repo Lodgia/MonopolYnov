@@ -65,17 +65,21 @@ export default function ModalPlay({ onClose }: Props) {
     const [copied, setCopied] = useState(false);
     const [settingsSaved, setSettingsSaved] = useState(false);
 
+    // Solo game state
     const [soloBotCount, setSoloBotCount] = useState(2);
     const [soloDifficulty, setSoloDifficulty] = useState<"easy" | "medium" | "hard">("medium");
 
+    // Modal state for adding a player
     const [addPlayerModal, setAddPlayerModal] = useState(false);
     const [mailAddPlayer, setMailAddPlayer] = useState("");
     const [inviteLoading, setInviteLoading] = useState(false);
 
+    // Game settings state
     const [settings, setSettings] = useState<GameSettings & { theme?: string; bots?: BotPlayer[] }>(DEFAULT_SETTINGS);
     const [minPlayers, setMinPlayers] = useState(2);
     const [maxPlayers, setMaxPlayers] = useState(4);
 
+    // Load user's ongoing games on choice screen
     useEffect(() => {
         if (action === "choice") {
             listMyGames()
@@ -84,6 +88,7 @@ export default function ModalPlay({ onClose }: Props) {
         }
     }, [action]);
 
+    // Parse settings from game.state if available
     const parseGameSettings = (game: Game) => {
         try {
             if (game.state) {
@@ -94,6 +99,7 @@ export default function ModalPlay({ onClose }: Props) {
                 }
             }
         } catch {
+            // Keep default
         }
         setSettings(DEFAULT_SETTINGS);
     };
@@ -141,12 +147,14 @@ export default function ModalPlay({ onClose }: Props) {
                 bots: selectedBots,
             });
 
+            // Minimum 1 human player
             const game = await createGame({
                 minPlayers: 1,
                 maxPlayers: soloBotCount + 1,
                 state: statePayload,
             });
 
+            // Start immediately
             await startGame(game.id, statePayload);
             onClose();
             navigate("/board");
@@ -313,6 +321,7 @@ export default function ModalPlay({ onClose }: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fadeIn p-4">
             <div className="w-full max-w-2xl p-6 rounded-[24px] font-bold text-white bg-gray-800/95 border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col gap-5 transition-all duration-300">
                 
+                {/* 1. CHOIX DU MODE (ACCUEIL) */}
                 {action === "choice" && (
                     <div className="w-full flex flex-col gap-5">
                         <div className="flex items-center justify-between">
@@ -332,7 +341,9 @@ export default function ModalPlay({ onClose }: Props) {
                             </button>
                         </div>
 
+                        {/* 3 Cartes de Mode de Jeu */}
                         <div className="grid grid-cols-3 gap-3.5 mt-1">
+                            {/* Mode Solo */}
                             <button
                                 onClick={() => setAction("solo")}
                                 className="group relative flex flex-col items-center justify-center p-5 bg-gradient-to-b from-slate-700/80 to-slate-800/90 hover:from-emerald-500/20 hover:to-slate-700 border-2 border-slate-600/80 hover:border-emerald-500 transition-all duration-300 rounded-[18px] cursor-pointer shadow-lg hover:shadow-emerald-500/10 text-center"
@@ -346,6 +357,7 @@ export default function ModalPlay({ onClose }: Props) {
                                 </span>
                             </button>
 
+                            {/* Mode Multijoueur Hôte */}
                             <button
                                 disabled={loading}
                                 onClick={handleCreateGame}
@@ -360,6 +372,7 @@ export default function ModalPlay({ onClose }: Props) {
                                 </span>
                             </button>
 
+                            {/* Mode Rejoindre */}
                             <button
                                 onClick={() => setAction("join")}
                                 className="group relative flex flex-col items-center justify-center p-5 bg-gradient-to-b from-slate-700/80 to-slate-800/90 hover:from-blue-500/20 hover:to-slate-700 border-2 border-slate-600/80 hover:border-blue-500 transition-all duration-300 rounded-[18px] cursor-pointer shadow-lg hover:shadow-blue-500/10 text-center"
@@ -374,6 +387,7 @@ export default function ModalPlay({ onClose }: Props) {
                             </button>
                         </div>
 
+                        {/* Parties en cours */}
                         {myGames.length > 0 && (
                             <div className="mt-1 border-t border-slate-700/80 pt-3.5">
                                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -404,6 +418,7 @@ export default function ModalPlay({ onClose }: Props) {
                     </div>
                 )}
 
+                {/* 2. MODE SOLO CONFIGURATION RAPIDE */}
                 {action === "solo" && (
                     <div className="w-full flex flex-col gap-5 animate-fadeIn">
                         <div className="flex items-center justify-between">
@@ -427,6 +442,7 @@ export default function ModalPlay({ onClose }: Props) {
                         </div>
 
                         <div className="flex flex-col gap-3.5 bg-slate-700/30 p-4 rounded-[18px] border border-slate-600/60">
+                            {/* Nombre de Bots */}
                             <div className="flex flex-col gap-2">
                                 <span className="text-xs text-gray-300 font-bold">Nombre d'adversaires IA</span>
                                 <div className="grid grid-cols-3 gap-2">
@@ -446,6 +462,7 @@ export default function ModalPlay({ onClose }: Props) {
                                 </div>
                             </div>
 
+                            {/* Difficulté de l'IA */}
                             <div className="flex flex-col gap-2">
                                 <span className="text-xs text-gray-300 font-bold">Difficulté de l'IA</span>
                                 <div className="grid grid-cols-3 gap-2">
@@ -469,6 +486,7 @@ export default function ModalPlay({ onClose }: Props) {
                                 </div>
                             </div>
 
+                            {/* Capital Solo */}
                             <div className="flex flex-col gap-2">
                                 <span className="text-xs text-gray-300 font-bold">Capital de départ</span>
                                 <div className="grid grid-cols-3 gap-2">
@@ -500,8 +518,10 @@ export default function ModalPlay({ onClose }: Props) {
                     </div>
                 )}
 
+                {/* 3. LOBBY MULTIJOUEUR HÔTE */}
                 {action === "host" && (
                     <div className="w-full flex flex-col gap-4 animate-fadeIn">
+                        {/* Header de Salon Haut de Gamme */}
                         <div className="flex items-center justify-between bg-slate-700/30 p-3.5 rounded-[18px] border border-slate-600/60">
                             <div className="flex items-center gap-3">
                                 <button
@@ -548,6 +568,7 @@ export default function ModalPlay({ onClose }: Props) {
                             </div>
                         </div>
 
+                        {/* Onglets navigation */}
                         <div className="grid grid-cols-2 p-1 bg-slate-900/80 rounded-[16px] border border-slate-700/60 text-sm">
                             <button
                                 onClick={() => setHostWindow("managePlayer")}
@@ -571,6 +592,7 @@ export default function ModalPlay({ onClose }: Props) {
                             </button>
                         </div>
 
+                        {/* CONTENU ONGLET 1 : GESTION JOUEURS & BOTS */}
                         {hostWindow === "managePlayer" && (
                             <div className="flex flex-col gap-4 animate-fadeIn">
                                 <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
@@ -618,6 +640,7 @@ export default function ModalPlay({ onClose }: Props) {
                                         );
                                     })}
 
+                                    {/* Bots IA dans le salon */}
                                     {activeBots.map((bot) => (
                                         <div
                                             key={`bot-${bot.id}`}
@@ -648,6 +671,7 @@ export default function ModalPlay({ onClose }: Props) {
                                         </div>
                                     ))}
 
+                                    {/* Emplacements vides */}
                                     {Array.from({ length: Math.max(0, maxPlayers - totalParticipants) }).map((_, i) => (
                                         <button
                                             key={`empty-${i}`}
@@ -660,6 +684,7 @@ export default function ModalPlay({ onClose }: Props) {
                                     ))}
                                 </div>
 
+                                {/* Actions bas de page */}
                                 <div className="flex items-center justify-between pt-2 border-t border-slate-700/60 mt-1">
                                     <div className="flex items-center gap-2">
                                         <button
@@ -700,6 +725,7 @@ export default function ModalPlay({ onClose }: Props) {
                             </div>
                         )}
 
+                        {/* CONTENU ONGLET 2 : PARAMÈTRES AMÉLIORÉS */}
                         {hostWindow === "setting" && (
                             <div className="flex flex-col gap-3 animate-fadeIn max-h-72 overflow-y-auto pr-1">
                                 {settingsSaved && (
@@ -708,6 +734,7 @@ export default function ModalPlay({ onClose }: Props) {
                                     </div>
                                 )}
 
+                                {/* Minimum & Maximum de joueurs */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 bg-slate-700/40 rounded-[16px] border border-slate-600/60 flex flex-col gap-2">
                                         <div className="flex items-center justify-between">
@@ -766,6 +793,7 @@ export default function ModalPlay({ onClose }: Props) {
                                     </div>
                                 </div>
 
+                                {/* Capital de départ */}
                                 <div className="p-3.5 bg-slate-700/40 rounded-[16px] border border-slate-600/60 flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -801,6 +829,7 @@ export default function ModalPlay({ onClose }: Props) {
                                     </div>
                                 </div>
 
+                                {/* Chrono par tour */}
                                 <div className="p-3.5 bg-slate-700/40 rounded-[16px] border border-slate-600/60 flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -837,6 +866,7 @@ export default function ModalPlay({ onClose }: Props) {
                                     </div>
                                 </div>
 
+                                {/* Thème du plateau */}
                                 <div className="p-3.5 bg-slate-700/40 rounded-[16px] border border-slate-600/60 flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
@@ -872,6 +902,7 @@ export default function ModalPlay({ onClose }: Props) {
                                     </div>
                                 </div>
 
+                                {/* Règles maison toggles */}
                                 <div className="p-3.5 bg-slate-700/40 rounded-[16px] border border-slate-600/60 flex flex-col gap-3">
                                     <span className="text-xs font-black text-white block">Règles maison</span>
                                     
@@ -928,6 +959,7 @@ export default function ModalPlay({ onClose }: Props) {
                     </div>
                 )}
 
+                {/* 4. REJOINDRE UN SALON */}
                 {action === "join" && (
                     <div className="w-full flex flex-col gap-5 animate-fadeIn">
                         <div className="flex items-center justify-between">
@@ -976,6 +1008,7 @@ export default function ModalPlay({ onClose }: Props) {
                 )}
             </div>
 
+            {/* MODALE D'INVITATION JOUEUR */}
             {addPlayerModal && (
                 <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/85 backdrop-blur-md animate-fadeIn p-4">
                     <div className="w-full max-w-md p-6 rounded-[22px] font-bold text-white bg-gray-800 border border-slate-700 shadow-2xl flex flex-col gap-5">
