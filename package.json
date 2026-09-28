@@ -22,7 +22,7 @@
     "react-router-dom": "^7.18.4",
     "tailwind": "^4.0.0",
     "tailwindcss": "^4.3.3",
-    "vitest": "^5.0.1"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^24.13.6",
