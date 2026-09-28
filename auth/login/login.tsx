@@ -43,9 +43,13 @@ export function Login() {
 
             const data = JSON.parse(texte);
 
-            console.log("Connexion réussie :", data);
-
             localStorage.setItem('token', data.token);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                if (data.user.color) {
+                    localStorage.setItem('user_color', data.user.color);
+                }
+            }
             navigate("/home")
 
         } catch (error) {

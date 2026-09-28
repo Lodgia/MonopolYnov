@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Player } from './Player.ts';
 import { monopolyBoard } from './allCases.ts';
 
@@ -31,12 +31,28 @@ const initialPlayersDict: PlayerTurnDict = {
 
 export const GameContext = createContext<GameContextValue | null>(null);
 
-export const GameProvider = ({ children }: { children: React.ReactNode }) => {
-  const [turnOrder, setTurnOrder] = useState<PlayerTurnDict>(initialPlayersDict);
+export const GameProvider = ({ children, initialPlayers }: { children: React.ReactNode; initialPlayers?: Player[] }) => {
+  const createDict = (list?: Player[]): PlayerTurnDict => {
+    if (list && list.length > 0) {
+      const dict: PlayerTurnDict = {};
+      list.forEach((p, idx) => {
+        dict[idx + 1] = p;
+      });
+      return dict;
+    }
+    return initialPlayersDict;
+  };
+
+  const [turnOrder, setTurnOrder] = useState<PlayerTurnDict>(() => createDict(initialPlayers));
   const [lastDiceRoll, setLastDiceRoll] = useState<DiceRollResult | null>(null);
-  const [lastActionMessage, setLastActionMessage] = useState<string | null>(
-    "La partie est prête. Joueur 1 commence !"
-  );
+  const [lastActionMessage, setLastActionMessage] = useState<string | null>("La partie est prête !");
+
+  useEffect(() => {
+    if (initialPlayers && initialPlayers.length > 0) {
+      setTurnOrder(createDict(initialPlayers));
+    }
+  }, [initialPlayers]);
+
   const currentPlayer = turnOrder[1];
   const players = Object.values(turnOrder);
 
@@ -48,21 +64,23 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     const dice2 = Math.floor(Math.random() * 6) + 1;
     const total = dice1 + dice2;
 
-    const oldPose = currentP.c
+    const oldPose = currentP.c;
     currentP.c = (currentP.c + total) % monopolyBoard.length;
 
     let passedStart = false;
-    if (currentP.c > oldPose) {
+    if (currentP.c < oldPose) {
       currentP.startCase();
       passedStart = true;
     }
 
-    const nextTurnOrder: PlayerTurnDict = {
-      1: turnOrder[2],
-      2: turnOrder[3],
-      3: turnOrder[4],
-      4: currentP,
-    };
+    const keys = Object.keys(turnOrder).map(Number).sort((a, b) => a - b);
+    const count = keys.length;
+    const nextTurnOrder: PlayerTurnDict = {};
+    for (let i = 0; i < count; i++) {
+      const currentOrderKey = keys[i];
+      const nextPlayer = (i === count - 1) ? currentP : turnOrder[keys[i + 1]];
+      nextTurnOrder[currentOrderKey] = nextPlayer;
+    }
 
     setTurnOrder(nextTurnOrder);
     const diceResult: DiceRollResult = { dice1, dice2, total };
@@ -79,14 +97,9 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const resetGame = () => {
-    setTurnOrder({
-      1: new Player(1, "Joueur 1 (Bleu)", 0, 1500, "bg-blue-500"),
-      2: new Player(2, "Joueur 2 (Rouge)", 0, 1500, "bg-red-500"),
-      3: new Player(3, "Joueur 3 (Vert)", 0, 1500, "bg-green-500"),
-      4: new Player(4, "Joueur 4 (Orange)", 0, 1500, "bg-orange-500"),
-    });
+    setTurnOrder(createDict(initialPlayers));
     setLastDiceRoll(null);
-    setLastActionMessage("Partie réinitialisée. Joueur 1 commence !");
+    setLastActionMessage("Partie réinitialisée. " + (turnOrder[1]?.name ?? "Joueur 1") + " commence !");
   };
 
   const value: GameContextValue = {

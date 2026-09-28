@@ -7,6 +7,7 @@ import { sql } from "./neon_db.ts";
 export interface AuthUser {
   id: number;
   email: string;
+  color?: string;
 }
 
 interface UserRow {
@@ -15,6 +16,7 @@ interface UserRow {
   password_hash: string;
   password_salt: string;
   profile_picture: string | null;
+  color?: string | null;
 }
 
 function toHex(bytes: ArrayBuffer | Uint8Array): string {
@@ -28,9 +30,6 @@ function randomHex(byteLength: number): string {
   return toHex(bytes);
 }
 
-// NOTE: this is a salted SHA-256 hash, not bcrypt/argon2. That's a deliberate
-// simplification for a local pedagogical project — don't reuse this for
-// anything that stores real user passwords.
 async function hashPassword(password: string, salt: string): Promise<string> {
   const data = new TextEncoder().encode(`${salt}:${password}`);
   const digest = await crypto.subtle.digest("SHA-256", data);
@@ -38,7 +37,7 @@ async function hashPassword(password: string, salt: string): Promise<string> {
 }
 
 function toAuthUser(row: UserRow): AuthUser {
-  return { id: row.id, email: row.email };
+  return { id: row.id, email: row.email, color: row.color ?? "#84cc16" };
 }
 
 export async function signup(req: Request): Promise<Response> {
@@ -47,7 +46,6 @@ export async function signup(req: Request): Promise<Response> {
   const password = requireString(body, "password");
   const profilePicture = typeof body.profilePicture === "string" ? body.profilePicture : null;
 
-  // Vérifier si l'utilisateur existe déjà
   const existing = (await sql`
     SELECT id FROM users WHERE email = ${email} LIMIT 1
   `) as UserRow[];
@@ -60,14 +58,15 @@ export async function signup(req: Request): Promise<Response> {
   const passwordHash = await hashPassword(password, salt);
 
   const [newUser] = (await sql`
-    INSERT INTO users (email, password_hash, password_salt, profile_picture)
-    VALUES (${email}, ${passwordHash}, ${salt}, ${profilePicture})
-    RETURNING id, email
+    INSERT INTO users (email, password_hash, password_salt, profile_picture, color)
+    VALUES (${email}, ${passwordHash}, ${salt}, ${profilePicture}, '#84cc16')
+    RETURNING id, email, color
   `) as unknown as UserRow[];
 
   const user: AuthUser = {
     id: Number(newUser.id),
     email: newUser.email,
+    color: newUser.color ?? "#84cc16",
   };
 
   const token = await createSession(user.id);
@@ -81,7 +80,7 @@ export async function login(req: Request): Promise<Response> {
   const password = requireString(body, "password");
 
   const rows = (await sql`
-    SELECT id, email, password_hash, password_salt, profile_picture
+    SELECT id, email, password_hash, password_salt, profile_picture, color
     FROM users
     WHERE email = ${email}
     LIMIT 1
@@ -102,6 +101,68 @@ export async function login(req: Request): Promise<Response> {
   return json({
     token,
     user: toAuthUser(row),
+  });
+}
+
+export async function updatePassword(req: Request): Promise<Response> {
+  const user = await requireAuth(req);
+  const body = await readJsonBody(req);
+  const currentPassword = requireString(body, "currentPassword");
+  const newPassword = requireString(body, "newPassword");
+
+  if (!newPassword || newPassword.length < 4) {
+    throw new HttpError(400, "Le nouveau mot de passe doit contenir au moins 4 caractères");
+  }
+
+  const rows = (await sql`
+    SELECT password_hash, password_salt FROM users WHERE id = ${user.id} LIMIT 1
+  `) as unknown as UserRow[];
+  const row = rows[0];
+  if (!row) throw new HttpError(404, "Utilisateur introuvable");
+
+  const candidateHash = await hashPassword(currentPassword, row.password_salt);
+  if (candidateHash !== row.password_hash) {
+    throw new HttpError(400, "Mot de passe actuel incorrect");
+  }
+
+  const newSalt = randomHex(16);
+  const newHash = await hashPassword(newPassword, newSalt);
+
+  await sql`
+    UPDATE users
+    SET password_hash = ${newHash}, password_salt = ${newSalt}
+    WHERE id = ${user.id}
+  `;
+
+  return json({ success: true, message: "Mot de passe modifié avec succès" });
+}
+
+export async function updateColor(req: Request): Promise<Response> {
+  const user = await requireAuth(req);
+  const body = await readJsonBody(req);
+  const color = requireString(body, "color");
+
+  await sql`
+    UPDATE users
+    SET color = ${color}
+    WHERE id = ${user.id}
+  `;
+
+  return json({ success: true, color });
+}
+
+export async function getMe(req: Request): Promise<Response> {
+  const user = await requireAuth(req);
+  const rows = (await sql`
+    SELECT id, email, profile_picture, color FROM users WHERE id = ${user.id} LIMIT 1
+  `) as unknown as UserRow[];
+  const row = rows[0];
+  if (!row) throw new HttpError(404, "Utilisateur introuvable");
+  return json({
+    id: row.id,
+    email: row.email,
+    profilePicture: row.profile_picture,
+    color: row.color ?? "#84cc16",
   });
 }
 

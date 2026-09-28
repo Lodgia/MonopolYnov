@@ -1,4 +1,3 @@
-import React from "react";
 import { useGame } from "./GameContext.tsx";
 import { monopolyBoard } from "./allCases.ts";
 
@@ -14,9 +13,7 @@ export function Des() {
     <div className="flex flex-col items-center justify-between w-full h-full max-w-md p-3 bg-white/95 rounded-xl border-2 border-red-500 shadow-md text-zinc-800 select-none">
       <div className="w-full flex items-center justify-between border-b border-zinc-200 pb-2">
         <div className="flex items-center gap-2">
-          <span
-            className={`w-4 h-4 rounded-full ${activePlayer?.color ?? "bg-gray-400"} border border-zinc-700 shadow-sm animate-pulse`}
-          />
+          <span style={activePlayer?.color?.startsWith("#") ? { backgroundColor: activePlayer.color } : undefined} className={`w-4 h-4 rounded-full ${!activePlayer?.color?.startsWith("#") ? (activePlayer?.color ?? "bg-gray-400") : ""} border border-zinc-700 shadow-sm animate-pulse`} />
           <div>
             <h2 className="text-xs font-black uppercase tracking-wide text-zinc-900">
               Tour actuel : {activePlayer?.name ?? "Inconnu"}
@@ -107,9 +104,7 @@ export function Des() {
                   Clé {orderKey} {isFirst ? "x" : ""}
                 </div>
                 <div className="flex items-center justify-center gap-1 my-0.5">
-                  <span
-                    className={`w-2 h-2 rounded-full ${player?.color ?? "bg-gray-400"} border border-white`}
-                  />
+                  <span style={player?.color?.startsWith("#") ? { backgroundColor: player.color } : undefined} className={`w-2 h-2 rounded-full ${!player?.color?.startsWith("#") ? (player?.color ?? "bg-gray-400") : ""} border border-white`} />
                   <span className="text-[9px] font-bold truncate max-w-[50px]">
                     {player?.name ?? `J${orderKey}`}
                   </span>

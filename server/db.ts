@@ -52,6 +52,10 @@ export async function initDb(): Promise<void> {
       PRIMARY KEY (game_id, user_id)
     );
   `;
+
+  await sql`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS color TEXT;
+  `;
 }
 
 // Initialise le schéma dès le démarrage du serveur

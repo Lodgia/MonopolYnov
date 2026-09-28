@@ -41,11 +41,15 @@ export function Signup() {
 
             const data = JSON.parse(texte);
 
-            console.log("Inscription réussie :", data);
-            navigate("/home")
-
             const token = data.token;
             localStorage.setItem('token', token);
+            if (data.user) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                if (data.user.color) {
+                    localStorage.setItem('user_color', data.user.color);
+                }
+            }
+            navigate("/home")
 
         } catch (error) {
             console.error("ERREUR FETCH :", error);

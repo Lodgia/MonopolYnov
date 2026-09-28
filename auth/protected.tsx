@@ -1,5 +1,4 @@
-import { Navigate } from "react-router-dom";
-import {Home} from "../protected/home";
+import { Navigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 export default function ProtectedRoute() {
@@ -15,7 +14,7 @@ export default function ProtectedRoute() {
                 return;
             }
             try {
-                const response = await fetch("/api/check-session", {
+                const response = await fetch("http://localhost:8000/auth/check-session", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -42,5 +41,5 @@ export default function ProtectedRoute() {
         return <Navigate to="/login" replace />;
     }
 
-    return <Home />;
+    return <Outlet />;
 }

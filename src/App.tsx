@@ -19,6 +19,7 @@ export default function App() {
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/home" element={<Home />} />
+                    <Route path="/game/:id" element={<Board />} />
                 </Route>
 
                 <Route path="*" element={<Error />} />

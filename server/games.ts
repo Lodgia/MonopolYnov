@@ -37,6 +37,7 @@ interface PlayerRow {
     id: number;
     email: string;
     profile_picture: string | null;
+    color: string | null;
 }
 
 async function getGameRow(id: number): Promise<GameRow> {
@@ -48,13 +49,9 @@ async function getGameRow(id: number): Promise<GameRow> {
     return row;
 }
 
-async function updatePasswprd(oldPassword: string, newPassword: string) {
-    
-}
-
 async function getPlayers(gameId: number): Promise<PlayerRow[]> {
     return (await sql`
-        SELECT users.id, users.email, users.profile_picture
+        SELECT users.id, users.email, users.profile_picture, users.color
         FROM game_players
         JOIN users ON users.id = game_players.user_id
         WHERE game_players.game_id = ${gameId}
@@ -69,13 +66,13 @@ async function isPlayer(gameId: number, userId: number): Promise<boolean> {
     return rows.length > 0;
 }
 
-/** Shapes a game row (plus its players) into the payload sent to clients. */
 async function toGamePayload(row: GameRow, viewerId?: number) {
     const playersList = await getPlayers(row.id);
     const players = playersList.map((p) => ({
         id: p.id,
         email: p.email,
         profilePicture: p.profile_picture,
+        color: p.color || "#84cc16",
     }));
     return {
         id: row.id,
@@ -126,12 +123,12 @@ export async function joinGame(req: Request, gameId: number): Promise<Response> 
     const user = await requireAuth(req);
     const game = await getGameRow(gameId);
 
-    if (game.status !== "pending") {
-        throw new HttpError(400, "Cette partie a déjà commencé ou est terminée");
-    }
-
     if (await isPlayer(gameId, user.id)) {
         return json(await toGamePayload(game, user.id));
+    }
+
+    if (game.status !== "pending") {
+        throw new HttpError(400, "Cette partie a déjà commencé ou est terminée");
     }
 
     const players = await getPlayers(gameId);

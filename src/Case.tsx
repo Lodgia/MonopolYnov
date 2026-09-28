@@ -15,10 +15,7 @@ export function Case({ property, players, position = "bottom" }: CaseProps) {
     return (
       <div className="flex gap-0.5 justify-center">
         {playersOnCase.map((p) => (
-          <div
-            key={p.id}
-            className={`w-2 h-2 rounded-full ${p.color}`}
-          />
+          <div key={p.id} style={p.color?.startsWith("#") ? { backgroundColor: p.color } : undefined} className={`w-2 h-2 rounded-full ${!p.color?.startsWith("#") ? p.color : ""}`} />
         ))}
       </div>
     );

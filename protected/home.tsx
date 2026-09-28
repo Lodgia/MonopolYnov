@@ -16,6 +16,7 @@ import Rules from "../src/Rules.tsx";
 import { VictoryModal } from "../src/VictoryModal.tsx";
 import { findWinner, type Player } from "../src/Player.ts";
 import Settings from "../src/Components/Settings.tsx";
+import { apiFetch } from "../api/client.ts";
 
 export interface BotPlayer {
     id: number;
@@ -76,6 +77,25 @@ export function Home({ players = [] }: HomeProps) {
     const [joinInputId, setJoinInputId] = useState("");
     const [inviteEmail, setInviteEmail] = useState("");
 
+    const [userColor, setUserColor] = useState(localStorage.getItem("user_color") || "#84cc16");
+    const [currentUserId, setCurrentUserId] = useState<number | null>(() => {
+        const u = localStorage.getItem("user");
+        return u ? JSON.parse(u).id : null;
+    });
+
+    useEffect(() => {
+        apiFetch<{ id: number; email: string; color?: string }>("/auth/me")
+            .then((me) => {
+                if (me.id) setCurrentUserId(me.id);
+                if (me.color) {
+                    setUserColor(me.color);
+                    localStorage.setItem("user_color", me.color);
+                }
+                localStorage.setItem("user", JSON.stringify(me));
+            })
+            .catch(() => {});
+    }, []);
+
     const fetchGames = async () => {
         setRefreshing(true);
         try {
@@ -90,16 +110,30 @@ export function Home({ players = [] }: HomeProps) {
 
     useEffect(() => {
         fetchGames();
+        const interval = setInterval(fetchGames, 2500);
+        return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (!currentGame) return;
+        const interval = setInterval(async () => {
+            try {
+                const updated = await getGame(currentGame.id);
+                setCurrentGame(updated);
+                setMaxPlayers(updated.maxPlayers);
+                if (updated.status === "started") {
+                    setShowHostModal(false);
+                    navigate(`/game/${updated.id}`);
+                }
+            } catch {}
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [currentGame?.id, navigate]);
 
     const handleOpenHostModal = async () => {
         setLoading(true);
         try {
-            const statePayload = JSON.stringify({
-                settings,
-                bots,
-                pawn: selectedPawn.id,
-            });
+            const statePayload = JSON.stringify({ settings, bots, color: userColor });
             const game = await createGame({
                 minPlayers: 2,
                 maxPlayers,
@@ -124,7 +158,11 @@ export function Home({ players = [] }: HomeProps) {
             setCurrentGame(game);
             setMaxPlayers(game.maxPlayers);
             setShowJoinModal(false);
-            setShowHostModal(true);
+            if (game.status === "started") {
+                navigate(`/game/${game.id}`);
+            } else {
+                setShowHostModal(true);
+            }
         } catch (error) {
             const msg = error instanceof Error ? error.message : "Impossible de rejoindre ce salon";
             alert(msg);
@@ -140,6 +178,10 @@ export function Home({ players = [] }: HomeProps) {
             const updated = await getGame(currentGame.id);
             setCurrentGame(updated);
             setMaxPlayers(updated.maxPlayers);
+            if (updated.status === "started") {
+                setShowHostModal(false);
+                navigate(`/game/${updated.id}`);
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -151,14 +193,10 @@ export function Home({ players = [] }: HomeProps) {
         if (!currentGame) return;
         setLoading(true);
         try {
-            const statePayload = JSON.stringify({
-                settings,
-                bots,
-                pawn: selectedPawn.id,
-            });
+            const statePayload = JSON.stringify({ settings, bots, color: userColor });
             await startGame(currentGame.id, statePayload);
             setShowHostModal(false);
-            navigate("/board");
+            navigate(`/game/${currentGame.id}`);
         } catch (error) {
             const msg = error instanceof Error ? error.message : "Impossible de démarrer";
             alert(msg);
@@ -173,7 +211,7 @@ export function Home({ players = [] }: HomeProps) {
 
         if (currentGame) {
             try {
-                const statePayload = JSON.stringify({ settings: updated, bots });
+                const statePayload = JSON.stringify({ settings: updated, bots, color: userColor });
                 const updatedGame = await updateGame(currentGame.id, {
                     maxPlayers,
                     state: statePayload,
@@ -214,7 +252,7 @@ export function Home({ players = [] }: HomeProps) {
 
     const copyShareUrl = () => {
         if (!currentGame) return;
-        const url = `${window.location.origin}/room/${currentGame.id}`;
+        const url = `${window.location.origin}/game/${currentGame.id}`;
         navigator.clipboard.writeText(url);
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
@@ -222,12 +260,14 @@ export function Home({ players = [] }: HomeProps) {
 
     const handleLogout = () => {
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("user_color");
         navigate("/login");
     };
 
     const currentPlayers = currentGame?.players || [];
-    const isHost = currentGame ? currentGame.creatorId === currentPlayers[0]?.id : true;
-    const canStart = currentGame && currentPlayers.length >= (currentGame.minPlayers ?? 2);
+    const isHost = currentGame && currentUserId ? currentGame.creatorId === currentUserId : true;
+    const canStart = currentGame && isHost && currentPlayers.length >= (currentGame.minPlayers ?? 2);
 
     return (
         <div className="min-h-screen w-full bg-blue-900 text-zinc-100 font-sans flex flex-col antialiased select-none">
@@ -261,9 +301,7 @@ export function Home({ players = [] }: HomeProps) {
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-emerald-400" />
                                         <span className="text-xs font-mono font-bold text-red-500">Salon #{game.id}</span>
-                                        <span className="text-[11px] text-zinc-400">
-                                            ({game.players.length}/{game.maxPlayers} joueurs)
-                                        </span>
+                                        <span className="text-[11px] text-zinc-400">({game.players.length}/{game.maxPlayers} joueurs)</span>
                                     </div>
                                     <div className="border-2 border-blue-500"><button onClick={() => handleJoinGame(game.id)} className="inline-block border-2 border-white text-[10px] font-bold p-2 bg-blue-500 text-white">Rejoindre</button></div>
                                 </div>
@@ -276,7 +314,6 @@ export function Home({ players = [] }: HomeProps) {
             {showHostModal && currentGame && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
                     <div className="w-full max-w-2xl bg-white border-3 border-red-500 p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-                        
                         <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
                             <div className="flex items-center gap-3">
                                 <div>
@@ -304,7 +341,7 @@ export function Home({ players = [] }: HomeProps) {
                                         return (
                                             <div key={player.id} className="flex items-center justify-between p-2 bg-blue-500 border border-zinc-700 rounded">
                                                 <div className="flex items-center gap-2 overflow-hidden">
-                                                    <div style={{ backgroundColor: selectedPawn.bg }} className="w-5 h-5 shrink-0 flex items-center justify-center"/>
+                                                    <div style={{ backgroundColor: player.color || userColor }} className="w-5 h-5 shrink-0 flex items-center justify-center rounded-full" />
                                                     <span className="text-xs text-white truncate" title={player.email}>
                                                         {player.email.split("@")[0]}
                                                     </span>
@@ -312,14 +349,10 @@ export function Home({ players = [] }: HomeProps) {
 
                                                 <div className="flex items-center gap-1">
                                                     {isCreator ? (
-                                                        <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">
-                                                            Hôte
-                                                        </span>
+                                                        <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">Hôte</span>
                                                     ) : (
                                                         isHost && (
-                                                            <button onClick={() => handleKickPlayer(player.id)} className="text-xs text-red-400 hover:text-red-300 px-1.5 py-0.5" title="Retirer">
-                                                                Expulser
-                                                            </button>
+                                                            <button onClick={() => handleKickPlayer(player.id)} className="text-xs text-red-400 hover:text-red-300 px-1.5 py-0.5" title="Retirer">Expulser</button>
                                                         )
                                                     )}
                                                 </div>
@@ -335,7 +368,7 @@ export function Home({ players = [] }: HomeProps) {
                                 </div>
 
                                 <div className="flex items-center gap-1.5 pt-2 border-t border-zinc-800">
-                                    <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="email@ynov.com" className="flex-1 bg-blue-500 border border-zinc-700 rounded px-2.5 py-1 text-xs text-white outline-none focus:border-purple-500"onKeyDown={(e) => {if (e.key === "Enter") handleSendInvite();}}/>
+                                    <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="email@ynov.com" className="flex-1 bg-blue-500 border border-zinc-700 rounded px-2.5 py-1 text-xs text-white outline-none focus:border-purple-500" onKeyDown={(e) => {if (e.key === "Enter") handleSendInvite();}} />
                                     <button onClick={handleSendInvite} className="text-xs px-2.5 py-1 bg-blue-500 duration-300 hover:bg-white text-black rounded font-medium cursor-pointer">
                                         Inviter
                                     </button>
@@ -392,13 +425,16 @@ export function Home({ players = [] }: HomeProps) {
 
                             <div className="flex items-center gap-2">
                                 <div className="border-2 border-blue-500"><button onClick={() => setShowHostModal(false)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Fermer</button></div>
-                                <div className="border-2 border-blue-500"><button disabled={loading || !canStart} onClick={handleStartCurrentGame} className={`inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white ${ canStart ? "bg-purple-600 hover:bg-purple-500 text-white shadow-sm" : "bg-blue-500 text-white cursor-not-allowed"}`}>{loading ? "Lancement..." : "Démarrer la partie"}</button></div>
+                                {isHost ? (
+                                    <div className="border-2 border-blue-500"><button disabled={loading || !canStart} onClick={handleStartCurrentGame} className={`inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white ${ canStart ? "bg-purple-600 hover:bg-purple-500 text-white shadow-sm" : "bg-blue-500 text-white cursor-not-allowed"}`}>{loading ? "Lancement..." : "Démarrer la partie"}</button></div>
+                                ) : (
+                                    <span className="text-xs text-amber-500 font-bold px-2 py-1">En attente de l'hôte pour lancer la partie...</span>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
             )}
-
 
             {showJoinModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -441,10 +477,17 @@ export function Home({ players = [] }: HomeProps) {
                 </div>
             )}
 
-            {/* Modal Règles & Victoire */}
             <VictoryModal winner={winner} />
             <Rules isOpen={rulesOpen} onClose={() => setRulesOpen(false)} />
-            {settingOpen && <Settings onClose={() => setSettingsOpen(false)} />}
+            {settingOpen && (
+                <Settings
+                    onClose={() => {
+                        setSettingsOpen(false);
+                        const c = localStorage.getItem("user_color");
+                        if (c) setUserColor(c);
+                    }}
+                />
+            )}
         </div>
     );
 }

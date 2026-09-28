@@ -2,8 +2,8 @@
 // and Web-standard URLPattern (no framework). See routes.md for the route
 // list this implements, and openapi.yaml (browsable at /docs) for full
 // request/response details.
-import "./db.ts"; // ensures the schema is created on startup
-import { login, signup } from "./auth.ts";
+import "./db.ts";
+import { checkSession, getMe, login, signup, updateColor, updatePassword } from "./auth.ts";
 import { serveDocsPage, serveOpenApiSpec } from "./docs.ts";
 import { CORS_HEADERS, HttpError, json } from "./http.ts";
 import {
@@ -42,6 +42,13 @@ const routes: Route[] = [
 
   route("POST", "/auth/signup", (req) => signup(req)),
   route("POST", "/auth/login", (req) => login(req)),
+  route("GET", "/auth/check-session", (req) => checkSession(req)),
+  route("GET", "/api/check-session", (req) => checkSession(req)),
+  route("GET", "/auth/me", (req) => getMe(req)),
+  route("POST", "/auth/change-password", (req) => updatePassword(req)),
+  route("PUT", "/auth/password", (req) => updatePassword(req)),
+  route("POST", "/auth/change-color", (req) => updateColor(req)),
+  route("PUT", "/auth/color", (req) => updateColor(req)),
 
   route("POST", "/games", (req) => createGame(req)),
   route("GET", "/games/mine", (req) => listMyGames(req)),
