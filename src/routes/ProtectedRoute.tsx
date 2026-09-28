@@ -13,17 +13,14 @@ export function ProtectedRoute() {
                 setLoading(false);
                 return;
             }
+
             try {
                 const response = await fetch("http://localhost:8000/auth/check-session", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                if (response.ok) {
-                    setAuthenticated(true);
-                } else {
-                    localStorage.removeItem("token");
-                }
+                response.ok ? setAuthenticated(true) : localStorage.removeItem("token");
             } catch (error) {
                 console.error(error);
             }
