@@ -15,6 +15,7 @@ import {
 import Rules from "../src/Rules.tsx";
 import { VictoryModal } from "../src/VictoryModal.tsx";
 import { findWinner, type Player } from "../src/Player.ts";
+import Settings from "../src/Components/Settings.tsx";
 
 export interface BotPlayer {
     id: number;
@@ -22,21 +23,6 @@ export interface BotPlayer {
     difficulty: "easy" | "medium" | "hard";
     color: string;
 }
-
-const PAWN_COLORS = [
-    { id: "lime", bg: "#84cc16", name: "Vert clair" },
-    { id: "sand", bg: "#d97706", name: "Ocre" },
-    { id: "orange", bg: "#f97316", name: "Orange" },
-    { id: "red", bg: "#ef4444", name: "Rouge" },
-    { id: "sky", bg: "#0ea5e9", name: "Bleu ciel" },
-    { id: "cyan", bg: "#06b6d4", name: "Cyan" },
-    { id: "teal", bg: "#14b8a6", name: "Sarcelle" },
-    { id: "mint", bg: "#10b981", name: "Menthe" },
-    { id: "tan", bg: "#a16207", name: "Marron" },
-    { id: "mascot-eyes", bg: "#ec4899", name: "Rose", hasEyes: true },
-    { id: "pink", bg: "#f43f5e", name: "Framboise" },
-    { id: "purple", bg: "#8b5cf6", name: "Violet" },
-];
 
 const DEFAULT_SETTINGS: GameSettings & {
     boardMap?: string;
@@ -72,11 +58,10 @@ export function Home({ players = [] }: HomeProps) {
     const navigate = useNavigate();
     const winner = findWinner(players);
 
-    const [selectedPawn, setSelectedPawn] = useState(PAWN_COLORS[9]);
-
     const [showHostModal, setShowHostModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [rulesOpen, setRulesOpen] = useState(false);
+    const [settingOpen, setSettingsOpen] = useState(false);
 
     const [currentGame, setCurrentGame] = useState<Game | null>(null);
     const [openGames, setOpenGames] = useState<Game[]>([]);
@@ -250,51 +235,12 @@ export function Home({ players = [] }: HomeProps) {
                 <img src="/logo.png" className="h-40"></img>
                 <div className="flex items-center gap-3">
                     <div className="border-2 border-blue-500"><button onClick={() => setRulesOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Règles</button></div>
+                    <div className="border-2 border-blue-500"><button onClick={() => setSettingsOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Paramètres</button></div>
                     <div className="border-2 border-red-500"><button onClick={handleLogout} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-red-500 text-white">Déconnexion</button></div>
                 </div>
             </header>
 
             <main className="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center gap-6">
-                
-                <div className="w-full bg-white border-3 border-red-500 p-5 flex flex-col items-center gap-4 shadow-sm">
-                    <div className="text-center">
-                        <h2 className="text-sm font-semibold text-red-500">
-                            Sélectionnez votre pion
-                        </h2>
-                        <p className="text-xs text-red-300 mt-0.5">
-                            Choisissez la couleur de votre pion sur le plateau
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-3 p-1">
-                        {PAWN_COLORS.map((pawn) => {
-                            const isSelected = selectedPawn.id === pawn.id;
-                            return (
-                                <button
-                                    key={pawn.id}
-                                    onClick={() => setSelectedPawn(pawn)}
-                                    style={{ backgroundColor: pawn.bg }}
-                                    className={`w-11 h-11 rounded-full cursor-pointer transition-transform flex items-center justify-center relative ${
-                                        isSelected ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-800 scale-105" : "hover:opacity-90"
-                                    }`}
-                                    title={pawn.name}
-                                >
-                                    {pawn.hasEyes && (
-                                        <div className="flex items-center gap-0.5">
-                                            <div className="w-2.5 h-2.5 bg-white rounded-full flex items-center justify-center">
-                                                <div className="w-1 h-1 bg-black rounded-full" />
-                                            </div>
-                                            <div className="w-2.5 h-2.5 bg-white rounded-full flex items-center justify-center">
-                                                <div className="w-1 h-1 bg-black rounded-full" />
-                                            </div>
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
                 <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button disabled={loading} onClick={handleOpenHostModal} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">{loading ? "Création..." : "Créer une partie"}</button>
                     <button onClick={() => setShowJoinModal(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Rejoindre une partie</button>
@@ -326,7 +272,6 @@ export function Home({ players = [] }: HomeProps) {
                     </div>
                 </div>
             </main>
-
 
             {showHostModal && currentGame && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -499,6 +444,7 @@ export function Home({ players = [] }: HomeProps) {
             {/* Modal Règles & Victoire */}
             <VictoryModal winner={winner} />
             <Rules isOpen={rulesOpen} onClose={() => setRulesOpen(false)} />
+            {settingOpen && <Settings onClose={() => setSettingsOpen(false)} />}
         </div>
     );
 }
