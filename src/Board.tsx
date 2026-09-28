@@ -1,8 +1,6 @@
 
-import React from "react";
 import { Case } from "./Case.tsx";
 import { Player } from "./Player.ts";
-import { property } from "./Property.ts";
 import {monopolyBoard} from "./allCases.ts"
 
 export function Board(){
