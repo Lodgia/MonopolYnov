@@ -72,31 +72,25 @@ export function Home({ players = [] }: HomeProps) {
     const navigate = useNavigate();
     const winner = findWinner(players);
 
-    // État du pion
     const [selectedPawn, setSelectedPawn] = useState(PAWN_COLORS[9]);
 
-    // État des modales
     const [showHostModal, setShowHostModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [rulesOpen, setRulesOpen] = useState(false);
 
-    // État du jeu
     const [currentGame, setCurrentGame] = useState<Game | null>(null);
     const [openGames, setOpenGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    // Paramètres modifiables dans la modale
     const [settings, setSettings] = useState(DEFAULT_SETTINGS);
     const [maxPlayers, setMaxPlayers] = useState(4);
     const bots: BotPlayer[] = [];
 
-    // Champs de saisie
     const [joinInputId, setJoinInputId] = useState("");
     const [inviteEmail, setInviteEmail] = useState("");
 
-    // Charger les salons ouverts
     const fetchGames = async () => {
         setRefreshing(true);
         try {
@@ -113,7 +107,6 @@ export function Home({ players = [] }: HomeProps) {
         fetchGames();
     }, []);
 
-    // 1. Créer une partie et ouvrir la modale de salon
     const handleOpenHostModal = async () => {
         setLoading(true);
         try {
@@ -139,7 +132,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-    // 2. Rejoindre un salon et ouvrir la modale de salon
     const handleJoinGame = async (gameId: number) => {
         setLoading(true);
         try {
@@ -156,40 +148,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-    // 3. Partie Solo immédiate
-    const handleSoloGame = async () => {
-        setLoading(true);
-        try {
-            const soloBots: BotPlayer[] = [
-                { id: -1, name: "Bot 1", difficulty: "medium", color: "#0ea5e9" },
-                { id: -2, name: "Bot 2", difficulty: "medium", color: "#f97316" },
-                { id: -3, name: "Bot 3", difficulty: "hard", color: "#84cc16" },
-            ];
-
-            const statePayload = JSON.stringify({
-                settings,
-                isSolo: true,
-                bots: soloBots,
-                pawn: selectedPawn.id,
-            });
-
-            const game = await createGame({
-                minPlayers: 1,
-                maxPlayers: 4,
-                state: statePayload,
-            });
-
-            await startGame(game.id, statePayload);
-            navigate("/board");
-        } catch (error) {
-            const msg = error instanceof Error ? error.message : "Erreur solo";
-            alert(msg);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Actualiser le salon actif
     const handleRefreshCurrentGame = async () => {
         if (!currentGame) return;
         setRefreshing(true);
@@ -204,7 +162,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-    // Démarrer la partie depuis la modale
     const handleStartCurrentGame = async () => {
         if (!currentGame) return;
         setLoading(true);
@@ -225,7 +182,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-    // Mise à jour des options en direct
     const updateSettingsField = async (field: string, value: unknown) => {
         const updated = { ...settings, [field]: value };
         setSettings(updated);
@@ -244,7 +200,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-    // Inviter un joueur
     const handleSendInvite = async () => {
         if (!currentGame) return;
         const email = inviteEmail.trim().toLowerCase();
@@ -261,7 +216,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-    // Retirer un joueur
     const handleKickPlayer = async (userId: number) => {
         if (!currentGame) return;
         try {
@@ -343,7 +297,6 @@ export function Home({ players = [] }: HomeProps) {
 
                 <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <button disabled={loading} onClick={handleOpenHostModal} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">{loading ? "Création..." : "Créer une partie"}</button>
-                    <button disabled={loading} onClick={handleSoloGame} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Mode Solo (vs IA)</button>
                     <button onClick={() => setShowJoinModal(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Rejoindre une partie</button>
                 </div>
 
@@ -374,72 +327,40 @@ export function Home({ players = [] }: HomeProps) {
                 </div>
             </main>
 
-            {/* ============================================================ */}
-            {/* 3. MODALE DE CRÉATION & GESTION DU SALON (LOBBY EN DIRECT)  */}
-            {/* ============================================================ */}
+
             {showHostModal && currentGame && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-                    <div className="w-full max-w-2xl bg-zinc-800 border border-zinc-700 rounded-xl p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="w-full max-w-2xl bg-white border-3 border-red-500 p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
                         
-                        {/* En-tête du Salon */}
                         <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
                             <div className="flex items-center gap-3">
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-base text-white">Salon #{currentGame.id}</h3>
-                                        <button
-                                            onClick={copyShareUrl}
-                                            className="text-xs px-2 py-0.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded cursor-pointer"
-                                        >
-                                            {copied ? "Copié !" : "Copier lien"}
-                                        </button>
+                                        <h3 className="font-bold text-base text-red-500">Salon #{currentGame.id}</h3>
+                                        <button onClick={copyShareUrl} className="text-xs px-2 py-0.5 bg-blue-500 text-zinc-300 cursor-pointer">{copied ? "Copié !" : "Copier lien"}</button>
                                     </div>
-                                    <span className="text-xs text-emerald-400">
-                                        {currentGame.status === "pending" ? "🟢 En attente de joueurs" : "🔴 Partie lancée"}
-                                    </span>
+                                    <span className="text-xs text-emerald-400">{currentGame.status === "pending" ? "🟢 En attente de joueurs" : "🔴 Partie lancée"}</span>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={handleRefreshCurrentGame}
-                                    className="text-xs px-2.5 py-1 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded cursor-pointer"
-                                    title="Actualiser les joueurs"
-                                >
-                                    {refreshing ? "..." : "Actualiser"}
-                                </button>
-                                <button
-                                    onClick={() => setShowHostModal(false)}
-                                    className="text-zinc-400 hover:text-white text-base px-2 py-0.5 rounded cursor-pointer"
-                                >
-                                    ✕
-                                </button>
+                                <button onClick={handleRefreshCurrentGame} className="text-xs px-2.5 py-1 bg-blue-500 text-zinc-300 cursor-pointer" title="Actualiser les joueurs">{refreshing ? "..." : "Actualiser"}</button>
+                                <button onClick={() => setShowHostModal(false)} className="text-zinc-400 hover:text-white text-base px-2 py-0.5 rounded cursor-pointer">✕</button>
                             </div>
                         </div>
 
-                        {/* Corps : 2 Colonnes (Joueurs & Paramètres) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                            
-                            {/* Colonne 1 : Joueurs connectés */}
-                            <div className="flex flex-col gap-3 bg-zinc-900 border border-zinc-700 rounded-lg p-3.5">
-                                <span className="text-xs font-semibold text-zinc-300 border-b border-zinc-750 pb-1">
-                                    Joueurs connectés ({currentPlayers.length}/{maxPlayers})
-                                </span>
+                            <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5">
+                                <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">Joueurs connectés ({currentPlayers.length}/{maxPlayers})</span>
 
                                 <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
                                     {currentPlayers.map((player) => {
                                         const isCreator = player.id === currentGame.creatorId;
                                         return (
-                                            <div
-                                                key={player.id}
-                                                className="flex items-center justify-between p-2 bg-zinc-800 border border-zinc-700 rounded"
-                                            >
+                                            <div key={player.id} className="flex items-center justify-between p-2 bg-blue-500 border border-zinc-700 rounded">
                                                 <div className="flex items-center gap-2 overflow-hidden">
-                                                    <div
-                                                        style={{ backgroundColor: selectedPawn.bg }}
-                                                        className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
-                                                    />
-                                                    <span className="text-xs text-zinc-200 truncate" title={player.email}>
+                                                    <div style={{ backgroundColor: selectedPawn.bg }} className="w-5 h-5 shrink-0 flex items-center justify-center"/>
+                                                    <span className="text-xs text-white truncate" title={player.email}>
                                                         {player.email.split("@")[0]}
                                                     </span>
                                                 </div>
@@ -451,11 +372,7 @@ export function Home({ players = [] }: HomeProps) {
                                                         </span>
                                                     ) : (
                                                         isHost && (
-                                                            <button
-                                                                onClick={() => handleKickPlayer(player.id)}
-                                                                className="text-xs text-red-400 hover:text-red-300 px-1.5 py-0.5"
-                                                                title="Retirer"
-                                                            >
+                                                            <button onClick={() => handleKickPlayer(player.id)} className="text-xs text-red-400 hover:text-red-300 px-1.5 py-0.5" title="Retirer">
                                                                 Expulser
                                                             </button>
                                                         )
@@ -465,54 +382,29 @@ export function Home({ players = [] }: HomeProps) {
                                         );
                                     })}
 
-                                    {/* Slots vides */}
                                     {Array.from({ length: Math.max(0, maxPlayers - currentPlayers.length) }).map((_, i) => (
-                                        <div
-                                            key={`empty-${i}`}
-                                            className="p-2 border border-dashed border-zinc-700 text-zinc-500 text-xs rounded text-center"
-                                        >
+                                        <div key={`empty-${i}`} className="p-2 border border-dashed border-red-500 text-red-500 text-xs rounded text-center">
                                             Emplacement libre
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Formulaire inviter par email */}
                                 <div className="flex items-center gap-1.5 pt-2 border-t border-zinc-800">
-                                    <input
-                                        value={inviteEmail}
-                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                        placeholder="email@ynov.com"
-                                        className="flex-1 bg-zinc-950 border border-zinc-700 rounded px-2.5 py-1 text-xs text-white outline-none focus:border-purple-500"
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter") handleSendInvite();
-                                        }}
-                                    />
-                                    <button
-                                        onClick={handleSendInvite}
-                                        className="text-xs px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded font-medium cursor-pointer"
-                                    >
+                                    <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="email@ynov.com" className="flex-1 bg-blue-500 border border-zinc-700 rounded px-2.5 py-1 text-xs text-white outline-none focus:border-purple-500"onKeyDown={(e) => {if (e.key === "Enter") handleSendInvite();}}/>
+                                    <button onClick={handleSendInvite} className="text-xs px-2.5 py-1 bg-blue-500 duration-300 hover:bg-white text-black rounded font-medium cursor-pointer">
                                         Inviter
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Colonne 2 : Paramètres et Règles en direct */}
-                            <div className="flex flex-col gap-3 bg-zinc-900 border border-zinc-700 rounded-lg p-3.5 text-xs">
-                                <span className="font-semibold text-zinc-300 border-b border-zinc-750 pb-1">
+                            <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5 text-xs">
+                                <span className="font-semibold text-red-500 border-b border-zinc-750 pb-1">
                                     Options du salon
                                 </span>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-zinc-400">Joueurs max</span>
-                                    <select
-                                        value={maxPlayers}
-                                        onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            setMaxPlayers(val);
-                                            updateSettingsField("maxPlayers", val);
-                                        }}
-                                        className="bg-zinc-800 border border-zinc-700 text-white rounded px-2 py-0.5 text-xs outline-none cursor-pointer"
-                                    >
+                                    <span className="text-black">Joueurs max</span>
+                                    <select value={maxPlayers} onChange={(e) => { const val = Number(e.target.value); setMaxPlayers(val); updateSettingsField("maxPlayers", val);}} className="bg-zinc-800 border border-zinc-700 text-white rounded px-2 py-0.5 text-xs outline-none cursor-pointer">
                                         <option value={2}>2 joueurs</option>
                                         <option value={3}>3 joueurs</option>
                                         <option value={4}>4 joueurs</option>
@@ -522,130 +414,65 @@ export function Home({ players = [] }: HomeProps) {
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-zinc-400">Salon privé</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.isPrivate}
-                                        onChange={(e) => updateSettingsField("isPrivate", e.target.checked)}
-                                        className="accent-purple-600 cursor-pointer"
-                                    />
+                                    <span className="text-black">Salon privé</span>
+                                    <input type="checkbox" checked={settings.isPrivate} onChange={(e) => updateSettingsField("isPrivate", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-zinc-400">Autoriser les bots</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.allowBots}
-                                        onChange={(e) => updateSettingsField("allowBots", e.target.checked)}
-                                        className="accent-purple-600 cursor-pointer"
-                                    />
+                                    <span className="text-black">Autoriser les bots</span>
+                                    <input type="checkbox" checked={settings.allowBots} onChange={(e) => updateSettingsField("allowBots", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-zinc-400">Loyer x2 sur groupe</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.doubleRentFullSet}
-                                        onChange={(e) => updateSettingsField("doubleRentFullSet", e.target.checked)}
-                                        className="accent-purple-600 cursor-pointer"
-                                    />
+                                    <span className="text-black">Loyer x2 sur groupe</span>
+                                    <input type="checkbox" checked={settings.doubleRentFullSet} onChange={(e) => updateSettingsField("doubleRentFullSet", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-zinc-400">Cagnotte Parc Gratuit</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.vacationCash}
-                                        onChange={(e) => updateSettingsField("vacationCash", e.target.checked)}
-                                        className="accent-purple-600 cursor-pointer"
-                                    />
+                                    <span className="text-black">Cagnotte Parc Gratuit</span>
+                                    <input type="checkbox" checked={settings.vacationCash} onChange={(e) => updateSettingsField("vacationCash", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
                                 </div>
 
                                 <div className="flex items-center justify-between">
-                                    <span className="text-zinc-400">Vente aux enchères</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={settings.auction}
-                                        onChange={(e) => updateSettingsField("auction", e.target.checked)}
-                                        className="accent-purple-600 cursor-pointer"
-                                    />
+                                    <span className="text-black">Vente aux enchères</span>
+                                    <input type="checkbox" checked={settings.auction} onChange={(e) => updateSettingsField("auction", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Pied de Modale : Bouton Lancement */}
                         <div className="flex items-center justify-between pt-3 border-t border-zinc-700">
                             <span className="text-xs text-zinc-400">
                                 {currentPlayers.length < 2 ? "Minimum 2 joueurs requis pour lancer" : "Prêt à démarrer"}
                             </span>
 
                             <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setShowHostModal(false)}
-                                    className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-200 rounded text-xs cursor-pointer"
-                                >
-                                    Fermer
-                                </button>
-                                <button
-                                    disabled={loading || !canStart}
-                                    onClick={handleStartCurrentGame}
-                                    className={`px-4 py-1.5 rounded text-xs font-semibold cursor-pointer transition ${
-                                        canStart
-                                            ? "bg-purple-600 hover:bg-purple-500 text-white shadow-sm"
-                                            : "bg-zinc-700 text-zinc-500 cursor-not-allowed"
-                                    }`}
-                                >
-                                    {loading ? "Lancement..." : "Démarrer la partie"}
-                                </button>
+                                <div className="border-2 border-blue-500"><button onClick={() => setShowHostModal(false)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Fermer</button></div>
+                                <div className="border-2 border-blue-500"><button disabled={loading || !canStart} onClick={handleStartCurrentGame} className={`inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white ${ canStart ? "bg-purple-600 hover:bg-purple-500 text-white shadow-sm" : "bg-blue-500 text-white cursor-not-allowed"}`}>{loading ? "Lancement..." : "Démarrer la partie"}</button></div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ============================================================ */}
-            {/* 4. MODALE REJOINDRE UNE PARTIE                              */}
-            {/* ============================================================ */}
+
             {showJoinModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
                     <div className="w-full max-w-sm bg-zinc-800 border border-zinc-700 rounded-xl p-5 flex flex-col gap-4 shadow-2xl">
                         <div className="flex items-center justify-between border-b border-zinc-700 pb-2">
                             <h3 className="font-semibold text-sm text-white">Rejoindre un salon</h3>
-                            <button
-                                onClick={() => setShowJoinModal(false)}
-                                className="text-zinc-400 hover:text-white text-xs"
-                            >
-                                ✕
-                            </button>
+                            <button onClick={() => setShowJoinModal(false)} className="text-zinc-400 hover:text-white text-xs">✕</button>
                         </div>
 
                         <div className="flex flex-col gap-2">
                             <label className="text-xs text-zinc-300">Numéro ou ID du salon</label>
                             <div className="flex items-center gap-1.5">
-                                <input
-                                    autoFocus
-                                    value={joinInputId}
-                                    onChange={(e) => setJoinInputId(e.target.value)}
-                                    placeholder="Ex: 4"
-                                    type="number"
-                                    className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-purple-500 font-mono"
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" && joinInputId.trim()) {
-                                            handleJoinGame(Number(joinInputId));
-                                        }
-                                    }}
-                                />
-                                <button
-                                    disabled={loading || !joinInputId.trim()}
-                                    onClick={() => handleJoinGame(Number(joinInputId))}
-                                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-zinc-700 text-white text-xs font-semibold rounded cursor-pointer"
-                                >
+                                <input autoFocus value={joinInputId} onChange={(e) => setJoinInputId(e.target.value)} placeholder="Ex: 4" type="number" className="flex-1 bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-purple-500 font-mono" onKeyDown={(e) => { if (e.key === "Enter" && joinInputId.trim()) { handleJoinGame(Number(joinInputId));}}}/>
+                                <button disabled={loading || !joinInputId.trim()} onClick={() => handleJoinGame(Number(joinInputId))} className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-zinc-700 text-white text-xs font-semibold rounded cursor-pointer">
                                     Entrer
                                 </button>
                             </div>
                         </div>
 
-                        {/* Liste des salons en attente */}
                         <div className="flex flex-col gap-2 pt-2 border-t border-zinc-700">
                             <span className="text-xs text-zinc-400 font-medium">Ou sélectionnez un salon ouvert :</span>
                             <div className="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
