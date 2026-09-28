@@ -41,8 +41,6 @@ export default function App() {
                 </Route>
 
                 <Route path="*" element={<Error />} />
-
-                {/* Tirer carte chance / communautaire */}
                 
                 {/* <button onClick={() => hitCard("luckyCards")}>Tirer une carte chance</button>
                 <button onClick={() => hitCard("communityCards")}>Tirer une carte communautaire</button> */}
