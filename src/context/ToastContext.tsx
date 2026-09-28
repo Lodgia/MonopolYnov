@@ -65,38 +65,18 @@ export function useToast() {
     return context;
 }
 
-function ToastContainer({
-    toasts,
-    onDismiss,
-}: {
-    toasts: ToastMessage[];
-    onDismiss: (id: string) => void;
-}) {
+function ToastContainer({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id: string) => void; }) {
     if (toasts.length === 0) return null;
 
     return (
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none select-none font-sans">
             {toasts.map((toast) => (
-                <div
-                    key={toast.id}
-                    onClick={() => onDismiss(toast.id)}
-                    className="pointer-events-auto bg-white border-3 border-red-500 shadow-2xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all transform hover:scale-102 animate-in slide-in-from-top-3 duration-200"
-                >
+                <div key={toast.id} onClick={() => onDismiss(toast.id)} className="pointer-events-auto bg-white border-3 border-red-500 shadow-2xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-all transform hover:scale-102 animate-in slide-in-from-top-3 duration-200">
                     <div className="flex items-center gap-2.5">
                         <span className="text-lg shrink-0">{toast.icon}</span>
-                        <p className="text-xs font-bold text-zinc-900 leading-snug">
-                            {toast.text}
-                        </p>
+                        <p className="text-xs font-bold text-zinc-900 leading-snug">{toast.text}</p>
                     </div>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onDismiss(toast.id);
-                        }}
-                        className="text-red-500 hover:text-red-700 text-xs font-black p-1 shrink-0 cursor-pointer"
-                    >
-                        ✕
-                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); onDismiss(toast.id); }} className="text-red-500 hover:text-red-700 text-xs font-black p-1 shrink-0 cursor-pointer">✕</button>
                 </div>
             ))}
         </div>

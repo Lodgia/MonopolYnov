@@ -9,19 +9,10 @@ interface MonopolyModalProps {
     children: React.ReactNode;
 }
 
-export function MonopolyModal({
-    isOpen,
-    onClose,
-    title,
-    headerBg = "red",
-    maxWidth = "md",
-    children,
-}: MonopolyModalProps) {
+export function MonopolyModal({ isOpen, onClose, title, headerBg = "red", maxWidth = "md", children }: MonopolyModalProps) {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && isOpen) {
-                onClose();
-            }
+            e.key === "Escape" && isOpen && onClose();
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
@@ -45,27 +36,14 @@ export function MonopolyModal({
     };
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
-            onClick={onClose}
-        >
-            <div
-                className={`w-full ${maxWidthStyles[maxWidth]} bg-white border-4 border-red-500 shadow-2xl p-2 relative max-h-[90vh] flex flex-col`}
-                onClick={(e) => e.stopPropagation()}
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150" onClick={onClose}>
+            <div className={`w-full ${maxWidthStyles[maxWidth]} bg-white border-4 border-red-500 shadow-2xl p-2 relative max-h-[90vh] flex flex-col`} onClick={(e) => e.stopPropagation()}>
                 <div className="border-2 border-black flex flex-col flex-1 overflow-hidden bg-zinc-50">
                     {title && (
-                        <div
-                            className={`p-3 text-center font-bold tracking-wide border-b-2 border-black flex items-center justify-between ${headerColors[headerBg]}`}
-                        >
+                        <div className={`p-3 text-center font-bold tracking-wide border-b-2 border-black flex items-center justify-between ${headerColors[headerBg]}`}>
                             <span className="w-6" />
                             <h2 className="text-xl uppercase">{title}</h2>
-                            <button
-                                onClick={onClose}
-                                className="w-6 h-6 flex items-center justify-center font-black hover:opacity-75 cursor-pointer text-sm"
-                            >
-                                ✕
-                            </button>
+                            <button onClick={onClose} className="w-6 h-6 flex items-center justify-center font-black hover:opacity-75 cursor-pointer text-sm">✕</button>
                         </div>
                     )}
                     <div className="p-5 overflow-y-auto flex-1">{children}</div>

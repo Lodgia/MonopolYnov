@@ -1,14 +1,6 @@
 import React from "react";
 
-export type ButtonVariant =
-    | "red"
-    | "green"
-    | "neutral"
-    | "ghost"
-    | "danger"
-    | "primary"
-    | "secondary"
-    | "success";
+export type ButtonVariant = "red" | "green" | "neutral" | "ghost" | "danger" | "primary" | "secondary" | "success";
 
 interface MonopolyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
@@ -17,17 +9,8 @@ interface MonopolyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
     children: React.ReactNode;
 }
 
-export function MonopolyButton({
-    variant = "red",
-    size = "md",
-    fullWidth = false,
-    className = "",
-    children,
-    disabled,
-    ...props
-}: MonopolyButtonProps) {
-    const baseStyle =
-        "font-bold transition-all duration-150 uppercase tracking-wide cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none text-center";
+export function MonopolyButton({ variant = "red", size = "md", fullWidth = false, className = "", children, disabled, ...props }: MonopolyButtonProps) {
+    const baseStyle = "font-bold transition-all duration-150 uppercase tracking-wide cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none text-center";
 
     const sizeStyles = {
         sm: "px-3 py-1 text-xs border-2",
@@ -47,14 +30,6 @@ export function MonopolyButton({
     };
 
     return (
-        <button
-            className={`${baseStyle} ${sizeStyles[size]} ${variantStyles[variant]} ${
-                fullWidth ? "w-full" : ""
-            } ${className}`}
-            disabled={disabled}
-            {...props}
-        >
-            {children}
-        </button>
+        <button className={`${baseStyle} ${sizeStyles[size]} ${variantStyles[variant]} ${fullWidth ? "w-full" : ""} ${className}`} disabled={disabled} {...props}>{children}</button>
     );
 }

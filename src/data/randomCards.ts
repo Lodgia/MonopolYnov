@@ -160,10 +160,7 @@ export function drawCard(cardType: CardType, playerName: string = "Le joueur"): 
     const list = cardType === "chance" || cardType === "luckyCards" ? CHANCE_CARDS : COMMUNITY_CARDS;
     const index = Math.floor(Math.random() * list.length);
     const card = list[index];
-    return {
-        ...card,
-        label: card.label.replace(/\{player\}/g, playerName),
-    };
+    return { ...card, label: card.label.replace(/\{player\}/g, playerName) };
 }
 
 export type CardResult = GameCard;

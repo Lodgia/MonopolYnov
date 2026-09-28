@@ -7,12 +7,7 @@ interface MonopolyBadgeProps {
     className?: string;
 }
 
-export function MonopolyBadge({
-    children,
-    color,
-    variant = "default",
-    className = "",
-}: MonopolyBadgeProps) {
+export function MonopolyBadge({ children, color, variant = "default", className = "" }: MonopolyBadgeProps) {
     const variantStyles = {
         default: "bg-white text-zinc-900 border-zinc-400",
         active: "bg-amber-100 text-amber-900 border-amber-500 shadow-md font-extrabold ring-2 ring-amber-400",
@@ -21,11 +16,6 @@ export function MonopolyBadge({
     };
 
     return (
-        <div
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-2 rounded-none text-xs font-bold ${variantStyles[variant]} ${className}`}
-            style={color ? { borderLeftColor: color, borderLeftWidth: "6px" } : undefined}
-        >
-            {children}
-        </div>
+        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 border-2 rounded-none text-xs font-bold ${variantStyles[variant]} ${className}`} style={color ? { borderLeftColor: color, borderLeftWidth: "6px" } : undefined}>{children}</div>
     );
 }

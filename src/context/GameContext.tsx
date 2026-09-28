@@ -102,15 +102,7 @@ const defaultInitialState: SyncedGameState = {
 
 export const GameContext = createContext<GameContextValue | null>(null);
 
-export const GameProvider = ({
-    children,
-    gameId,
-    initialPlayers,
-}: {
-    children: React.ReactNode;
-    gameId?: number;
-    initialPlayers?: SyncedPlayer[];
-}) => {
+export const GameProvider = ({ children, gameId, initialPlayers }: { children: React.ReactNode; gameId?: number; initialPlayers?: SyncedPlayer[]; }) => {
     const { addToast } = useToast();
     const [me, setMe] = useState<UserMe | null>(null);
     const [gameState, setGameStateLocal] = useState<SyncedGameState>(() => {
@@ -127,11 +119,9 @@ export const GameProvider = ({
     const knownLeftRef = useRef<Set<number>>(new Set());
 
     useEffect(() => {
-        getMeUser()
-            .then((u) => setMe(u))
-            .catch(() => {
-                setMe({ id: 1, email: "joueur@monopolynov.local", profilePicture: null, color: "#ef4444" });
-            });
+        getMeUser().then((u) => setMe(u)).catch(() => {
+            setMe({ id: 1, email: "joueur@monopolynov.local", profilePicture: null, color: "#ef4444" });
+        });
     }, []);
 
     useEffect(() => {
