@@ -2,7 +2,7 @@ import { useGame } from "./GameContext.tsx";
 import { monopolyBoard } from "./allCases.ts";
 
 export function Des({ score }: { score?: (n: number) => void } = {}) {
-    const { turnOrder, rollDice, lastDiceRoll, lastActionMessage, resetGame } = useGame();
+    const { turnOrder, rollDice, lastDiceRoll, lastActionMessage, resetGame, useJailFreeCard } = useGame();
     const activePlayer = turnOrder[1];
 
     const handleRoll = () => {
@@ -24,6 +24,7 @@ export function Des({ score }: { score?: (n: number) => void } = {}) {
                         <p className="text-[10px] text-zinc-500">
                             Case actuelle : <span className="font-semibold text-zinc-700">{monopolyBoard[activePlayer?.c]?.name ?? "Départ"}</span> (#{activePlayer?.c})
                         </p>
+                        {activePlayer?.isInJail && <p className="text-[10px] font-bold text-red-600">En prison • {activePlayer.jailTurns}/3 tours</p>}
                     </div>
                 </div>
                 <div className="text-right">
@@ -67,6 +68,11 @@ export function Des({ score }: { score?: (n: number) => void } = {}) {
             </div>
 
             <div className="w-full flex flex-col items-center gap-1.5">
+                {activePlayer?.isInJail && activePlayer.jailFreeCards > 0 && (
+                    <button onClick={useJailFreeCard} className="w-full rounded border border-amber-500 bg-amber-100 px-3 py-1.5 text-[10px] font-bold text-zinc-900 cursor-pointer">
+                        Utiliser une carte de sortie ({activePlayer.jailFreeCards})
+                    </button>
+                )}
                 <button
                     onClick={handleRoll}
                     className="w-full py-2 px-4 bg-red-500 hover:bg-red-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider rounded-lg shadow-md transition duration-150 cursor-pointer border-2 border-white flex items-center justify-center gap-1.5"

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Player } from './Player.ts';
 import { monopolyBoard } from './allCases.ts';
+import type { CardType } from './Components/Cards/RandomCard.ts';
 
 export type PlayerTurnDict = {
   [order: number]: Player;
@@ -18,7 +19,10 @@ export type GameContextValue = {
   currentPlayer: Player;
   lastDiceRoll: DiceRollResult | null;
   lastActionMessage: string | null;
+  lastCard: { label: string; type: CardType } | null;
   rollDice: () => DiceRollResult | null;
+  dismissCard: () => void;
+  useJailFreeCard: () => void;
   resetGame: () => void;
 };
 
@@ -43,9 +47,23 @@ export const GameProvider = ({ children, initialPlayers }: { children: React.Rea
     return initialPlayersDict;
   };
 
+  const cloneDict = (source: PlayerTurnDict): PlayerTurnDict => {
+    const cloned: PlayerTurnDict = {};
+    Object.entries(source).forEach(([order, player]) => {
+      const copy = new Player(player.id, player.name, player.c, player.money, player.color);
+      copy.haveProp = [...player.haveProp];
+      copy.isInJail = player.isInJail;
+      copy.jailTurns = player.jailTurns;
+      copy.jailFreeCards = player.jailFreeCards;
+      cloned[Number(order)] = copy;
+    });
+    return cloned;
+  };
+
   const [turnOrder, setTurnOrder] = useState<PlayerTurnDict>(() => createDict(initialPlayers));
   const [lastDiceRoll, setLastDiceRoll] = useState<DiceRollResult | null>(null);
   const [lastActionMessage, setLastActionMessage] = useState<string | null>("La partie est prête !");
+  const [lastCard, setLastCard] = useState<GameContextValue["lastCard"]>(null);
 
   useEffect(() => {
     if (initialPlayers && initialPlayers.length > 0) {
@@ -57,28 +75,68 @@ export const GameProvider = ({ children, initialPlayers }: { children: React.Rea
   const players = Object.values(turnOrder);
 
   const rollDice = (): DiceRollResult | null => {
-    const currentP = turnOrder[1];
+    const updatedTurnOrder = cloneDict(turnOrder);
+    const currentP = updatedTurnOrder[1];
     if (!currentP) return null;
 
     const dice1 = Math.floor(Math.random() * 6) + 1;
     const dice2 = Math.floor(Math.random() * 6) + 1;
     const total = dice1 + dice2;
 
-    const oldPose = currentP.c;
-    currentP.c = (currentP.c + total) % monopolyBoard.length;
-
+    const messages: string[] = [];
     let passedStart = false;
-    if (currentP.c < oldPose) {
-      currentP.startCase();
-      passedStart = true;
+    let moved = true;
+
+    if (currentP.isInJail) {
+      if (dice1 === dice2) {
+        currentP.isInJail = false;
+        currentP.jailTurns = 0;
+        messages.push(`${currentP.name} sort de prison grâce à un double`);
+      } else if (currentP.jailTurns < 2) {
+        currentP.jailTurns++;
+        moved = false;
+        messages.push(`${currentP.name} reste en prison (${currentP.jailTurns}/3)`);
+      } else {
+        currentP.money -= 50;
+        currentP.isInJail = false;
+        currentP.jailTurns = 0;
+        messages.push(`${currentP.name} paie 50 $ et sort de prison`);
+      }
     }
 
-    const keys = Object.keys(turnOrder).map(Number).sort((a, b) => a - b);
+    if (moved) {
+      const oldPosition = currentP.c;
+      currentP.c = (currentP.c + total) % monopolyBoard.length;
+      if (currentP.c < oldPosition) {
+        currentP.startCase();
+        passedStart = true;
+      }
+
+      for (let resolved = 0; resolved < 4; resolved++) {
+        const landedSquare = monopolyBoard[currentP.c];
+        const positionBeforeAction = currentP.c;
+        const delta = landedSquare.action({
+          player: currentP,
+          players: Object.values(updatedTurnOrder),
+          diceTotal: total,
+          onCardDrawn: (label, type) => setLastCard({ label, type }),
+        });
+        currentP.money += delta;
+
+        if (delta !== 0) {
+          messages.push(`${delta > 0 ? "Encaissement" : "Paiement"} de ${Math.abs(delta)} $ (${landedSquare.name})`);
+        }
+
+        if (currentP.isInJail || currentP.c === positionBeforeAction) break;
+      }
+    }
+
+    const keys = Object.keys(updatedTurnOrder).map(Number).sort((a, b) => a - b);
     const count = keys.length;
     const nextTurnOrder: PlayerTurnDict = {};
     for (let i = 0; i < count; i++) {
       const currentOrderKey = keys[i];
-      const nextPlayer = (i === count - 1) ? currentP : turnOrder[keys[i + 1]];
+      const nextPlayer = (i === count - 1) ? currentP : updatedTurnOrder[keys[i + 1]];
       nextTurnOrder[currentOrderKey] = nextPlayer;
     }
 
@@ -88,17 +146,31 @@ export const GameProvider = ({ children, initialPlayers }: { children: React.Rea
 
     const squareName = monopolyBoard[currentP.c]?.name ?? `Case ${currentP.c}`;
     setLastActionMessage(
-      `${currentP.name} a fait ${total} (${dice1} + ${dice2}) et s'est déplacé sur "${squareName}"${
-        passedStart ? " (+200$ au passage par Départ)" : ""
-      }. C'est maintenant au tour de ${nextTurnOrder[1]?.name} !`
+      `${currentP.name} a fait ${total} (${dice1} + ${dice2})${moved ? ` et arrive sur « ${squareName} »` : ""}${
+        passedStart ? " (+200 $ au passage par Départ)" : ""
+      }${messages.length ? `. ${messages.join(". ")}` : ""}. C'est maintenant au tour de ${nextTurnOrder[1]?.name} !`
     );
 
     return diceResult;
   };
 
+  const dismissCard = () => setLastCard(null);
+
+  const useJailFreeCard = () => {
+    const updatedTurnOrder = cloneDict(turnOrder);
+    const currentP = updatedTurnOrder[1];
+    if (!currentP?.isInJail || currentP.jailFreeCards < 1) return;
+    currentP.jailFreeCards--;
+    currentP.isInJail = false;
+    currentP.jailTurns = 0;
+    setTurnOrder(updatedTurnOrder);
+    setLastActionMessage(`${currentP.name} utilise une carte de sortie de prison.`);
+  };
+
   const resetGame = () => {
     setTurnOrder(createDict(initialPlayers));
     setLastDiceRoll(null);
+    setLastCard(null);
     setLastActionMessage("Partie réinitialisée. " + (turnOrder[1]?.name ?? "Joueur 1") + " commence !");
   };
 
@@ -108,7 +180,10 @@ export const GameProvider = ({ children, initialPlayers }: { children: React.Rea
     currentPlayer,
     lastDiceRoll,
     lastActionMessage,
+    lastCard,
     rollDice,
+    dismissCard,
+    useJailFreeCard,
     resetGame,
   };
 

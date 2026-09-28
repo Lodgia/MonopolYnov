@@ -7,6 +7,9 @@ export class Player{
     haveProp : property[]
     money : number;
     color : string;
+    isInJail: boolean;
+    jailTurns: number;
+    jailFreeCards: number;
 
     constructor(id:number ,name:string, c: number,money : number,color:string){
         this.id=id
@@ -15,6 +18,9 @@ export class Player{
         this.haveProp = []
         this.money = money
         this.color = color
+        this.isInJail = false
+        this.jailTurns = 0
+        this.jailFreeCards = 0
     }
 
     isSolvent(){

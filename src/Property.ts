@@ -1,4 +1,12 @@
 import { Player } from './Player.ts';
+import RandomCard, { type CardType } from './Components/Cards/RandomCard.ts';
+
+export interface SquareActionContext {
+    player: Player;
+    players: Player[];
+    diceTotal: number;
+    onCardDrawn: (label: string, type: CardType) => void;
+}
 
 export type ColorsProp = "brown" | "cyan" | "pink" | "orange" | "red" | "yellow" | "green" | "blue" | "";
 
@@ -18,6 +26,8 @@ export interface Square {
     name: string;
     type: "property" | "station" | "utility" | "special";
     color?: string;
+    price?: number;
+    action: (context: SquareActionContext) => number;
 }
 
 export class property implements Square {
@@ -31,6 +41,7 @@ export class property implements Square {
     price: number;
     color: string;
     level: number;
+    action: (context: SquareActionContext) => number;
 
     constructor(id: number, name: string, type: "property" | "station" | "utility", costHouse: number, allCost: number[], price: number, color: ColorsProp) {
         this.id = id;
@@ -43,6 +54,27 @@ export class property implements Square {
         this.allCost = allCost;
         this.price = price;
         this.color = color ? colorClasses[color] : "";
+        this.action = ({ player, players, diceTotal }) => {
+            if (this.buyBy === -1 || this.buyBy === player.id) return 0;
+
+            const owner = players.find((candidate) => candidate.id === this.buyBy);
+            if (!owner) return 0;
+
+            let rent = 0;
+            if (this.type === "utility") {
+                const ownedUtilities = players.flatMap((candidate) => candidate.haveProp)
+                    .filter((owned) => owned.type === "utility" && owned.buyBy === owner.id).length;
+                rent = diceTotal * (ownedUtilities > 1 ? 10 : 4);
+            } else {
+                const ownedInGroup = players.flatMap((candidate) => candidate.haveProp)
+                    .filter((owned) => owned.type === this.type && owned.buyBy === owner.id).length;
+                const rentIndex = this.type === "station" ? Math.max(0, ownedInGroup - 1) : this.level;
+                rent = this.allCost[Math.min(rentIndex, this.allCost.length - 1)] ?? 0;
+            }
+
+            owner.money += rent;
+            return -rent;
+        };
     }
 
     upgrade() {
@@ -66,11 +98,60 @@ export class SpecialSquare implements Square {
     name: string;
     type: "special";
     subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail";
+    action: (context: SquareActionContext) => number;
 
     constructor(id: number, name: string, subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail") {
         this.id = id;
         this.name = name;
         this.type = "special";
         this.subType = subType;
+        this.action = ({ player, players, onCardDrawn }) => {
+            if (this.subType === "start") return 200;
+            if (this.subType === "tax") return this.id === 4 ? -200 : -100;
+            if (this.subType === "go-to-jail") {
+                player.c = 10;
+                player.isInJail = true;
+                player.jailTurns = 0;
+                return 0;
+            }
+            if (this.subType !== "chance" && this.subType !== "community") return 0;
+
+            const cardType: CardType = this.subType === "chance" ? "luckyCards" : "communityCards";
+            const card = RandomCard(cardType);
+            onCardDrawn(card.label, cardType);
+
+            if (card.jailFree) {
+                player.jailFreeCards++;
+                return 0;
+            }
+            if (card.goToJail) {
+                player.c = 10;
+                player.isInJail = true;
+                player.jailTurns = 0;
+                return 0;
+            }
+            if (card.destination !== undefined) {
+                const destination = card.destination === -1
+                    ? [5, 15, 25, 35].find((station) => station > player.c) ?? 5
+                    : (card.destination < 0
+                        ? (player.c + card.destination + 40) % 40
+                        : card.destination);
+                const passedStart = card.passStart && destination > 0 && destination < player.c;
+                player.c = destination;
+                return (card.amount ?? 0) + (passedStart ? 200 : 0);
+            }
+            if (card.birthday) {
+                const others = players.filter((candidate) => candidate.id !== player.id);
+                others.forEach((candidate) => { candidate.money -= 10; });
+                return others.length * 10;
+            }
+            if (card.repairRate) {
+                const properties = player.haveProp;
+                const houses = properties.reduce((sum, owned) => sum + Math.min(owned.level, 4), 0);
+                const hotels = properties.filter((owned) => owned.level >= 5).length;
+                return -(houses * card.repairRate.house + hotels * card.repairRate.hotel);
+            }
+            return card.amount ?? 0;
+        };
     }
 }

@@ -1,5 +1,5 @@
 import { Player } from "./Player.ts";
-import { property, type Square } from "./Property.ts";
+import type { Square } from "./Property.ts";
 
 interface CaseProps {
   property: Square;
@@ -44,9 +44,9 @@ export function Case({ property, players, position = "bottom" }: CaseProps) {
           {property.name}
         </h1>
         {pl(players)}
-        <p className="font-bold text-[9px] shrink-0">
-          {(property as property).price}
-        </p>
+        {property.price !== undefined && (
+          <p className="font-bold text-[9px] shrink-0">{property.price} $</p>
+        )}
       </div>
     </div>
   );

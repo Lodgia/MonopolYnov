@@ -6,13 +6,21 @@ import { monopolyBoard } from "./allCases.ts";
 import { Des } from "./des.tsx";
 import { GameProvider, useGame } from "./GameContext.tsx";
 import { getGame } from "./Game.ts";
+import DisplayCard from "./Components/Cards/DisplayCard.tsx";
 
 function BoardInner({ gameId }: { gameId?: string }) {
     const navigate = useNavigate();
-    const { players } = useGame();
+    const { players, lastCard, dismissCard } = useGame();
+
+    useEffect(() => {
+        if (!lastCard) return;
+        const timeout = window.setTimeout(dismissCard, 5000);
+        return () => window.clearTimeout(timeout);
+    }, [lastCard, dismissCard]);
 
     return (
         <div className="min-h-screen w-full bg-blue-900 text-zinc-100 flex flex-col items-center justify-center p-4 select-none">
+            {lastCard && <DisplayCard cardLabel={lastCard.label} cardType={lastCard.type} onDismiss={dismissCard} />}
             {gameId && (
                 <div className="w-full max-w-2xl flex items-center justify-between mb-2">
                     <div className="border-2 border-red-500"><button onClick={() => navigate("/home")} className="inline-block border-2 border-white text-xs font-bold p-1.5 bg-red-500 text-white cursor-pointer">Quitter</button></div>
