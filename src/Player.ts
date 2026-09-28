@@ -1,10 +1,10 @@
-import {Propriety} from './Propriety.ts'
+import {property} from './Property.ts'
 
 export class Player{
     id : number;
     name : string;
     c : number ;
-    haveProp : Propriety[]
+    haveProp : property[]
     money : number;
     color : "bg-blue-500" | "bg-red-500" | "bg-orange-500" | "bg-green-500" | ""
 
@@ -21,7 +21,7 @@ export class Player{
         return this.money > 0
     }
 
-    buy(p:Propriety){
+    buy(p:property){
         if(this.money-p.price>=0){
             p.isBuyBy(this)
             this.money-=p.price
@@ -43,7 +43,7 @@ export class Player{
         return false
     }
 
-    checkProp(p:Propriety){
+    checkProp(p:property){
         for (let i=0;i<this.haveProp.length;i++){
             if (this.haveProp[i].id==p.id){
                 return true
@@ -52,7 +52,7 @@ export class Player{
         return false
     }
 
-    upgrade(p:Propriety){
+    upgrade(p:property){
         if (this.checkProp(p)){
             if (this.money>p.costHouse){
                 this.money-=p.costHouse

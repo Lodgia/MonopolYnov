@@ -20,7 +20,7 @@ export interface Square {
     color?: string;
 }
 
-export class Propriety implements Square {
+export class property implements Square {
     id: number;
     name: string;
     type: "property" | "station" | "utility";
