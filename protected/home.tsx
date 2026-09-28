@@ -15,6 +15,7 @@ import {
 import Rules from "../src/Rules.tsx";
 import { VictoryModal } from "../src/VictoryModal.tsx";
 import { findWinner, type Player } from "../src/Player.ts";
+import Settings from "../src/Components/Settings.tsx";
 
 export interface BotPlayer {
     id: number;
@@ -33,7 +34,7 @@ const PAWN_COLORS = [
     { id: "teal", bg: "#14b8a6", name: "Sarcelle" },
     { id: "mint", bg: "#10b981", name: "Menthe" },
     { id: "tan", bg: "#a16207", name: "Marron" },
-    { id: "mascot-eyes", bg: "#ec4899", name: "Rose", hasEyes: true },
+    { id: "mascot-eyes", bg: "#ec4899", name: "Rose" },
     { id: "pink", bg: "#f43f5e", name: "Framboise" },
     { id: "purple", bg: "#8b5cf6", name: "Violet" },
 ];
@@ -42,7 +43,7 @@ const DEFAULT_SETTINGS: GameSettings & {
     boardMap?: string;
     doubleRentFullSet?: boolean;
     vacationCash?: boolean;
-    auction?: boolean;
+    caution?: boolean;
     rentInPrison?: boolean;
     mortgageEnabled?: boolean;
     evenBuildEnabled?: boolean;
@@ -58,7 +59,7 @@ const DEFAULT_SETTINGS: GameSettings & {
     boardMap: "Classique",
     doubleRentFullSet: true,
     vacationCash: true,
-    auction: false,
+    caution: false,
     rentInPrison: false,
     mortgageEnabled: true,
     evenBuildEnabled: true,
@@ -79,6 +80,7 @@ export function Home({ players = [] }: HomeProps) {
     const [showHostModal, setShowHostModal] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [rulesOpen, setRulesOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
     // État du jeu
     const [currentGame, setCurrentGame] = useState<Game | null>(null);
@@ -296,6 +298,7 @@ export function Home({ players = [] }: HomeProps) {
                 <img src="/logo.png" className="h-40"></img>
                 <div className="flex items-center gap-3">
                     <div className="border-2 border-blue-500"><button onClick={() => setRulesOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Règles</button></div>
+                    <div className="border-2 border-blue-500"><button onClick={() => setSettingsOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Paramètres</button></div>
                     <div className="border-2 border-red-500"><button onClick={handleLogout} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-red-500 text-white">Déconnexion</button></div>
                 </div>
             </header>
@@ -310,34 +313,6 @@ export function Home({ players = [] }: HomeProps) {
                         <p className="text-xs text-red-300 mt-0.5">
                             Choisissez la couleur de votre pion sur le plateau
                         </p>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-3 p-1">
-                        {PAWN_COLORS.map((pawn) => {
-                            const isSelected = selectedPawn.id === pawn.id;
-                            return (
-                                <button
-                                    key={pawn.id}
-                                    onClick={() => setSelectedPawn(pawn)}
-                                    style={{ backgroundColor: pawn.bg }}
-                                    className={`w-11 h-11 rounded-full cursor-pointer transition-transform flex items-center justify-center relative ${
-                                        isSelected ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-800 scale-105" : "hover:opacity-90"
-                                    }`}
-                                    title={pawn.name}
-                                >
-                                    {pawn.hasEyes && (
-                                        <div className="flex items-center gap-0.5">
-                                            <div className="w-2.5 h-2.5 bg-white rounded-full flex items-center justify-center">
-                                                <div className="w-1 h-1 bg-black rounded-full" />
-                                            </div>
-                                            <div className="w-2.5 h-2.5 bg-white rounded-full flex items-center justify-center">
-                                                <div className="w-1 h-1 bg-black rounded-full" />
-                                            </div>
-                                        </div>
-                                    )}
-                                </button>
-                            );
-                        })}
                     </div>
                 </div>
 
@@ -374,14 +349,9 @@ export function Home({ players = [] }: HomeProps) {
                 </div>
             </main>
 
-            {/* ============================================================ */}
-            {/* 3. MODALE DE CRÉATION & GESTION DU SALON (LOBBY EN DIRECT)  */}
-            {/* ============================================================ */}
             {showHostModal && currentGame && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
                     <div className="w-full max-w-2xl bg-zinc-800 border border-zinc-700 rounded-xl p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-                        
-                        {/* En-tête du Salon */}
                         <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
                             <div className="flex items-center gap-3">
                                 <div>
@@ -565,8 +535,8 @@ export function Home({ players = [] }: HomeProps) {
                                     <span className="text-zinc-400">Vente aux enchères</span>
                                     <input
                                         type="checkbox"
-                                        checked={settings.auction}
-                                        onChange={(e) => updateSettingsField("auction", e.target.checked)}
+                                        checked={settings.caution}
+                                        onChange={(e) => updateSettingsField("caution", e.target.checked)}
                                         className="accent-purple-600 cursor-pointer"
                                     />
                                 </div>
@@ -672,6 +642,7 @@ export function Home({ players = [] }: HomeProps) {
             {/* Modal Règles & Victoire */}
             <VictoryModal winner={winner} />
             <Rules isOpen={rulesOpen} onClose={() => setRulesOpen(false)} />
+            {settingsOpen && <Settings onClose={() => setSettingsOpen(false)}/>}
         </div>
     );
 }
