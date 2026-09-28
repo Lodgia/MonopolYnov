@@ -192,6 +192,7 @@ interface RulesModalProps {
 export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
     const [activeSection, setActiveSection] = useState<RuleSection>(RULE_SECTIONS[0])
 
+    // Handle Escape key to close
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -218,6 +219,7 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                 className="flex max-h-[min(700px,calc(100vh-2rem))] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-2xl md:flex-row"
                 onClick={(e) => e.stopPropagation()}
             >
+                {/* Volet Latéral / Menu des catégories */}
                 <aside className="flex w-full shrink-0 flex-col border-b border-zinc-800 bg-zinc-950 p-4 md:w-60 md:border-b-0 md:border-r">
                     <div className="mb-4 flex items-center justify-between">
                         <div>
@@ -238,6 +240,7 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                         </button>
                     </div>
 
+                    {/* Liste des onglets */}
                     <nav className="flex gap-1.5 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
                         {RULE_SECTIONS.map((section) => {
                             const isActive = activeSection.id === section.id
@@ -270,7 +273,9 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                     </div>
                 </aside>
 
+                {/* Zone Principale de Contenu */}
                 <div className="flex min-h-0 flex-1 flex-col bg-zinc-900">
+                    {/* Header de la section active façon carte Monopoly */}
                     <header className="border-b border-zinc-800 bg-zinc-900/60 p-4 sm:p-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className={`h-8 w-2 rounded-full ${activeSection.color}`} />
@@ -294,11 +299,14 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                         </button>
                     </header>
 
+                    {/* Contenu Défilable */}
                     <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                        {/* Encart résumé / introduction */}
                         <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3.5 text-xs text-zinc-300 leading-relaxed">
                             {activeSection.introduction}
                         </div>
 
+                        {/* Grille des cartes de règles */}
                         <div className="grid gap-3 sm:grid-cols-2">
                             {activeSection.cards.map((card) => (
                                 <article
