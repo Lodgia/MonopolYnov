@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Case } from "./Case.tsx";
 import { Player } from "./Player.ts";
 import { monopolyBoard } from "./allCases.ts";
-import { Des } from "./Des.tsx";
+import { Des } from "./des.tsx";
 import { GameProvider, useGame } from "./GameContext.tsx";
 import { getGame } from "./Game.ts";
 
@@ -63,19 +63,8 @@ function BoardInner({ gameId }: { gameId?: string }) {
                 <div className="col-start-1 row-start-4 w-full h-full"><Case players={players} property={monopolyBoard[37]} position="right" /></div>
                 <div className="col-start-1 row-start-3 w-full h-full"><Case players={players} property={monopolyBoard[38]} position="right" /></div>
                 <div className="col-start-1 row-start-2 w-full h-full"><Case players={players} property={monopolyBoard[39]} position="right" /></div>
-                <div className="col-start-1 row-start-11 w-full h-full"><Case players={players} property={monopolyBoard[30]} position="corner" /></div>
-                <div className="col-start-1 row-start-10 w-full h-full"><Case players={players} property={monopolyBoard[31]} position="right" /></div>
-                <div className="col-start-1 row-start-9 w-full h-full"><Case players={players} property={monopolyBoard[32]} position="right" /></div>
-                <div className="col-start-1 row-start-8 w-full h-full"><Case players={players} property={monopolyBoard[33]} position="right" /></div>
-                <div className="col-start-1 row-start-7 w-full h-full"><Case players={players} property={monopolyBoard[34]} position="right" /></div>
-                <div className="col-start-1 row-start-6 w-full h-full"><Case players={players} property={monopolyBoard[35]} position="right" /></div>
-                <div className="col-start-1 row-start-5 w-full h-full"><Case players={players} property={monopolyBoard[36]} position="right" /></div>
-                <div className="col-start-1 row-start-4 w-full h-full"><Case players={players} property={monopolyBoard[37]} position="right" /></div>
-                <div className="col-start-1 row-start-3 w-full h-full"><Case players={players} property={monopolyBoard[38]} position="right" /></div>
-                <div className="col-start-1 row-start-2 w-full h-full"><Case players={players} property={monopolyBoard[39]} position="right" /></div>
 
-                <div className="col-start-2 col-end-11 row-start-2 row-end-11 "><Des score={scorePlayer} />
-                </div>
+                <div className="col-start-2 col-end-11 row-start-2 row-end-11 flex items-center justify-center p-2"><Des /></div>
             </div>
         </div>
     );
