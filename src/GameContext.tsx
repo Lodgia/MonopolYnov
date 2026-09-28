@@ -3,16 +3,17 @@ import { monopolyBoard } from "./allCases.ts";
 import { property, SpecialSquare } from "./Property.ts";
 import { drawCard } from "./Components/Cards/RandomCard.ts";
 import { getGame, setGameState, getMeUser, type UserMe } from "./Game.ts";
+import { useToast } from "./Components/notifications/ToastContext.tsx";
 
 export const PAWN_PALETTE = [
-    "#ef4444", // Rouge Monopoly
-    "#3b82f6", // Bleu Roi
-    "#10b981", // Vert Émeraude
-    "#f59e0b", // Jaune Ambré
-    "#8b5cf6", // Violet
-    "#ec4899", // Rose
-    "#06b6d4", // Cyan
-    "#84cc16", // Lime
+    "#ef4444",
+    "#3b82f6",
+    "#10b981",
+    "#f59e0b",
+    "#8b5cf6",
+    "#ec4899",
+    "#06b6d4",
+    "#84cc16",
 ];
 
 export function getUniquePawnColors(count: number): string[] {
@@ -30,11 +31,12 @@ export interface SyncedPlayer {
     jailTurns: number;
     isBot?: boolean;
     isBankrupt?: boolean;
+    hasLeft?: boolean;
 }
 
 export interface PropertyState {
-    ownerId: number; // -1 if unowned
-    level: number;   // 0 = base, 1-4 = houses, 5 = hotel
+    ownerId: number;
+    level: number;
 }
 
 export interface SyncedGameState {
@@ -67,6 +69,7 @@ export interface GameContextValue {
     upgradeProperty: (squareId: number) => void;
     payJailFine: () => void;
     endTurn: () => void;
+    leaveCurrentGame: () => void;
     closeActiveCard: () => void;
     resetGame: () => void;
     isLoading: boolean;
@@ -108,6 +111,7 @@ export const GameProvider = ({
     gameId?: number;
     initialPlayers?: SyncedPlayer[];
 }) => {
+    const { addToast } = useToast();
     const [me, setMe] = useState<UserMe | null>(null);
     const [gameState, setGameStateLocal] = useState<SyncedGameState>(() => {
         if (initialPlayers && initialPlayers.length > 0) {
@@ -120,9 +124,8 @@ export const GameProvider = ({
         return defaultInitialState;
     });
     const [isLoading] = useState(false);
-    const isBotRunningRef = useRef(false);
+    const lastMsgRef = useRef<string>("");
 
-    // 1. Fetch current logged-in user
     useEffect(() => {
         getMeUser()
             .then((u) => setMe(u))
@@ -131,7 +134,6 @@ export const GameProvider = ({
             });
     }, []);
 
-    // 2. Poll remote game state if online gameId is present
     useEffect(() => {
         if (!gameId) return;
 
@@ -150,15 +152,18 @@ export const GameProvider = ({
                                 parsed.currentTurnPlayerId !== prev.currentTurnPlayerId ||
                                 parsed.hasRolled !== prev.hasRolled ||
                                 parsed.winnerId !== prev.winnerId ||
-                                JSON.stringify(parsed.activeCard) !== JSON.stringify(prev.activeCard)
+                                JSON.stringify(parsed.activeCard) !== JSON.stringify(prev.activeCard) ||
+                                JSON.stringify(parsed.players) !== JSON.stringify(prev.players)
                             ) {
+                                if (parsed.lastActionMessage && parsed.lastActionMessage !== lastMsgRef.current) {
+                                    lastMsgRef.current = parsed.lastActionMessage;
+                                    addToast(parsed.lastActionMessage, "info");
+                                }
                                 return parsed;
                             }
                             return prev;
                         });
-                    } catch {
-                        // ignore
-                    }
+                    } catch {}
                 } else if (g.players && g.players.length > 0) {
                     setGameStateLocal((prev) => {
                         if (prev.players.length === g.players.length) return prev;
@@ -179,9 +184,7 @@ export const GameProvider = ({
                         };
                     });
                 }
-            } catch {
-                // error polling
-            }
+            } catch {}
         };
 
         fetchRemote();
@@ -190,14 +193,12 @@ export const GameProvider = ({
             isMounted = false;
             clearInterval(interval);
         };
-    }, [gameId]);
+    }, [gameId, addToast]);
 
-    // Active player and turn checking
     const activePlayer = gameState.players.find((p) => p.id === gameState.currentTurnPlayerId) ?? gameState.players[0] ?? null;
-    const isMyTurn = !gameId || (me !== null && activePlayer?.id === me.id) || (activePlayer?.isBot === true);
+    const isMyTurn = !gameId || (me !== null && activePlayer?.id === me.id);
     const canRollAgain = !!gameState.canRollAgain;
 
-    // Save and synchronize state
     const syncState = useCallback(
         async (newState: SyncedGameState, nextTurnUserId?: number) => {
             setGameStateLocal(newState);
@@ -216,7 +217,6 @@ export const GameProvider = ({
         [gameId]
     );
 
-    // Helper: calculate rent on a square
     const calculateRent = useCallback(
         (sq: property, properties: Record<number, PropertyState>, players: SyncedPlayer[], diceTotal: number): number => {
             const propState = properties[sq.id];
@@ -236,7 +236,6 @@ export const GameProvider = ({
                 return ownerUtilities >= 2 ? diceTotal * 10 : diceTotal * 4;
             }
 
-            // Normal property
             const sameGroup = monopolyBoard.filter(
                 (s) => s.type === "property" && (s as property).colorKey === sq.colorKey
             );
@@ -247,7 +246,6 @@ export const GameProvider = ({
         []
     );
 
-    // 3. Roll Dice logic
     const rollDice = useCallback(() => {
         if (!activePlayer || (!canRollAgain && gameState.hasRolled) || !isMyTurn) return;
 
@@ -265,7 +263,6 @@ export const GameProvider = ({
         let drawnCard: { type: "chance" | "community"; title: string; label: string } | null = null;
         let isNowInJail = p.inJail;
 
-        // In Jail handling
         if (p.inJail) {
             if (isDouble) {
                 p.inJail = false;
@@ -281,7 +278,7 @@ export const GameProvider = ({
                     p.c = (p.c + total) % 40;
                     actionMsg = `${p.name} paie 50 € de caution après 3 tours et avance de ${total} cases.`;
                 } else {
-                    actionMsg = `${p.name} fait ${dice1}+${dice2} (pas de double) et reste en prison (Tour ${p.jailTurns}/3).`;
+                    actionMsg = `${p.name} fait ${dice1}+${dice2} (pas de double) et reste en prison (${p.jailTurns}/3).`;
                     newPlayers[pIndex] = p;
                     const nextSt: SyncedGameState = {
                         ...gameState,
@@ -298,7 +295,6 @@ export const GameProvider = ({
                 }
             }
         } else {
-            // Normal movement
             if (newDoubleCount === 3) {
                 p.inJail = true;
                 p.jailTurns = 0;
@@ -321,7 +317,7 @@ export const GameProvider = ({
 
             const oldPos = p.c;
             p.c = (p.c + total) % 40;
-            let passedGo = p.c < oldPos;
+            const passedGo = p.c < oldPos;
             if (passedGo) {
                 p.money += 200;
             }
@@ -383,8 +379,6 @@ export const GameProvider = ({
         }
 
         newPlayers[pIndex] = p;
-
-        // Double roll allows property buying AND rolling again!
         const willCanRollAgain = isDouble && newDoubleCount < 3 && !isNowInJail;
 
         const nextSt: SyncedGameState = {
@@ -403,7 +397,6 @@ export const GameProvider = ({
         syncState(nextSt);
     }, [activePlayer, gameState, isMyTurn, canRollAgain, syncState, calculateRent]);
 
-    // 4. Buy property logic (works even after double roll!)
     const buyCurrentProperty = useCallback(() => {
         if (!activePlayer || !isMyTurn) return;
 
@@ -437,7 +430,6 @@ export const GameProvider = ({
         syncState(nextSt);
     }, [activePlayer, isMyTurn, gameState, syncState]);
 
-    // 5. Upgrade property (houses / hotel)
     const upgradeProperty = useCallback(
         (squareId: number) => {
             if (!activePlayer || !isMyTurn) return;
@@ -474,7 +466,6 @@ export const GameProvider = ({
         [activePlayer, isMyTurn, gameState, syncState]
     );
 
-    // 6. Pay jail fine (50 €)
     const payJailFine = useCallback(() => {
         if (!activePlayer || !activePlayer.inJail || !isMyTurn || activePlayer.money < 50) return;
 
@@ -492,19 +483,17 @@ export const GameProvider = ({
         syncState(nextSt);
     }, [activePlayer, isMyTurn, gameState, syncState]);
 
-    // 7. End Turn logic
     const endTurn = useCallback(() => {
         if (!activePlayer || !gameState.hasRolled || !isMyTurn) return;
 
-        // Check for bankrupt players (money <= 0 with debts)
-        const activePlayersList = gameState.players.filter((p) => !p.isBankrupt && p.money >= 0);
+        const activePlayersList = gameState.players.filter((p) => !p.isBankrupt && !p.hasLeft && p.money >= 0);
         if (activePlayersList.length <= 1) {
             const winner = activePlayersList[0] || activePlayer;
             const nextSt: SyncedGameState = {
                 ...gameState,
                 version: gameState.version + 1,
                 winnerId: winner.id,
-                lastActionMessage: `🏆 Victoire de ${winner.name} ! Tous les autres joueurs sont en faillite.`,
+                lastActionMessage: `🏆 Victoire de ${winner.name} !`,
             };
             syncState(nextSt);
             return;
@@ -523,11 +512,43 @@ export const GameProvider = ({
             diceRoll: null,
             doubleCount: 0,
             activeCard: null,
-            lastActionMessage: `Fin du tour de ${activePlayer.name}. C'est maintenant au tour de ${nextPlayer.name} !`,
+            lastActionMessage: `C'est maintenant au tour de ${nextPlayer.name} !`,
         };
 
         syncState(nextSt, nextPlayer.id);
     }, [activePlayer, gameState, isMyTurn, syncState]);
+
+    const leaveCurrentGame = useCallback(() => {
+        if (!me) return;
+
+        const newPlayers = gameState.players.map((p) =>
+            p.id === me.id ? { ...p, hasLeft: true } : p
+        );
+
+        const activeRemaining = newPlayers.filter((p) => !p.isBankrupt && !p.hasLeft && p.money >= 0);
+        const isWinnerFound = activeRemaining.length === 1;
+        const winner = isWinnerFound ? activeRemaining[0] : null;
+
+        let nextTurnPlayerId = gameState.currentTurnPlayerId;
+        if (gameState.currentTurnPlayerId === me.id && activeRemaining.length > 0) {
+            nextTurnPlayerId = activeRemaining[0].id;
+        }
+
+        const nextSt: SyncedGameState = {
+            ...gameState,
+            version: gameState.version + 1,
+            players: newPlayers,
+            currentTurnPlayerId: nextTurnPlayerId,
+            hasRolled: false,
+            canRollAgain: false,
+            winnerId: winner ? winner.id : gameState.winnerId,
+            lastActionMessage: `🚪 ${me.email.split("@")[0]} a quitté la partie.${
+                winner ? ` 🏆 Victoire automatique de ${winner.name} !` : ""
+            }`,
+        };
+
+        syncState(nextSt, nextTurnPlayerId);
+    }, [me, gameState, syncState]);
 
     const closeActiveCard = useCallback(() => {
         const nextSt = { ...gameState, version: gameState.version + 1, activeCard: null };
@@ -545,6 +566,7 @@ export const GameProvider = ({
                 color: uniqueColors[idx] || p.color,
                 inJail: false,
                 jailTurns: 0,
+                hasLeft: false,
             })),
             properties: defaultProperties,
             currentTurnPlayerId: gameState.players[0]?.id ?? 1,
@@ -564,6 +586,7 @@ export const GameProvider = ({
         upgradeProperty,
         payJailFine,
         endTurn,
+        leaveCurrentGame,
         closeActiveCard,
         resetGame,
         isLoading,

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "../../api/client.ts";
+import { MonopolyButton } from "./ui/MonopolyButton.tsx";
 
 type props = {
     onClose: () => void;
@@ -83,7 +84,6 @@ export default function Settings({ onClose }: props) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 select-none">
             <div className="w-full max-w-2xl bg-white border-3 border-red-500 p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto font-sans">
-                {/* Header Modal */}
                 <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
                     <div className="flex items-center gap-2">
                         <h3 className="font-bold text-base text-red-500 uppercase">
@@ -101,9 +101,7 @@ export default function Settings({ onClose }: props) {
                     </div>
                 </div>
 
-                {/* Grille 2 Colonnes DA Projet (Bleu 300 / Blanc / Bordures Rouges) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                    {/* Colonne Gauche : Sélection du pion */}
                     <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5">
                         <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
                             Couleur de votre pion
@@ -128,7 +126,6 @@ export default function Settings({ onClose }: props) {
                         </div>
                     </div>
 
-                    {/* Colonne Droite : Mot de passe */}
                     <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5 text-xs">
                         <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
                             Modifier votre mot de passe
@@ -157,15 +154,15 @@ export default function Settings({ onClose }: props) {
                                 placeholder="Confirmation"
                             />
 
-                            <div className="border-2 border-blue-500 w-full mt-2">
-                                <button
-                                    disabled={saving}
-                                    onClick={handleSave}
-                                    className="inline-block border-2 border-white text-xs font-bold p-2 bg-blue-500 text-white w-full cursor-pointer hover:bg-blue-600 transition"
-                                >
-                                    {saving ? "Sauvegarde..." : "Sauvegarder"}
-                                </button>
-                            </div>
+                            <MonopolyButton
+                                variant="primary"
+                                fullWidth
+                                disabled={saving}
+                                onClick={handleSave}
+                                className="mt-2"
+                            >
+                                {saving ? "Sauvegarde..." : "Sauvegarder"}
+                            </MonopolyButton>
                         </div>
                     </div>
                 </div>

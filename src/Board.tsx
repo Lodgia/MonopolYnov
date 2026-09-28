@@ -14,7 +14,7 @@ import type { Square } from "./Property.ts";
 
 function BoardInner({ gameId }: { gameId?: string }) {
     const navigate = useNavigate();
-    const { gameState, activePlayer, isMyTurn, buyCurrentProperty, upgradeProperty, closeActiveCard } = useGame();
+    const { gameState, activePlayer, isMyTurn, buyCurrentProperty, upgradeProperty, closeActiveCard, leaveCurrentGame } = useGame();
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
     const [rulesOpen, setRulesOpen] = useState(false);
     const [historyOpen, setHistoryOpen] = useState(false);
@@ -35,44 +35,56 @@ function BoardInner({ gameId }: { gameId?: string }) {
     const canBuySelected = isSelectedCurrent && isMyTurn && selectedOwner?.name === undefined;
     const canUpgradeSelected = isMyTurn && selectedOwner?.name === activePlayer?.name;
 
+    const handleLeave = () => {
+        if (window.confirm("Êtes-vous sûr de vouloir quitter la partie en cours ?")) {
+            leaveCurrentGame();
+            navigate("/home");
+        }
+    };
+
     return (
-        <div className="min-h-screen w-full bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-2 sm:p-4 select-none antialiased">
-            {/* Barre Supérieure */}
+        <div className="min-h-screen w-full bg-blue-900 text-zinc-100 flex flex-col items-center justify-center p-2 sm:p-4 select-none antialiased font-sans">
             <div className="w-full max-w-2xl flex items-center justify-between mb-2 px-1">
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => navigate("/home")}
-                        className="px-2.5 py-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 rounded transition cursor-pointer"
-                    >
-                        ← Quitter
-                    </button>
+                    <div className="border-2 border-red-500">
+                        <button
+                            onClick={handleLeave}
+                            className="inline-block border-2 border-white text-xs font-bold p-1 px-2.5 bg-red-500 text-white cursor-pointer hover:bg-red-600 transition"
+                        >
+                            ← Quitter la partie
+                        </button>
+                    </div>
                     <span className="font-bold text-sm text-white">MonopolYnov</span>
                     {gameId && (
-                        <span className="px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[10px] font-mono text-amber-400">
-                            Salon #{gameId}
+                        <span className="border-2 border-blue-500">
+                            <span className="inline-block border-2 border-white text-[10px] font-bold p-0.5 px-2 bg-blue-500 text-white font-mono">
+                                Salon #{gameId}
+                            </span>
                         </span>
                     )}
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setHistoryOpen(true)}
-                        className="px-2.5 py-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 rounded transition cursor-pointer"
-                    >
-                        📜 Historique
-                    </button>
-                    <button
-                        onClick={() => setRulesOpen(true)}
-                        className="px-2.5 py-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700 rounded transition cursor-pointer"
-                    >
-                        📖 Règles
-                    </button>
+                    <div className="border-2 border-blue-500">
+                        <button
+                            onClick={() => setHistoryOpen(true)}
+                            className="inline-block border-2 border-white text-xs font-bold p-1 px-2.5 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition"
+                        >
+                            📜 Historique
+                        </button>
+                    </div>
+                    <div className="border-2 border-blue-500">
+                        <button
+                            onClick={() => setRulesOpen(true)}
+                            className="inline-block border-2 border-white text-xs font-bold p-1 px-2.5 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition"
+                        >
+                            📖 Règles
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Plateau 11x11 */}
-            <div className="grid grid-cols-[repeat(11,minmax(0,1fr))] grid-rows-[repeat(11,minmax(0,1fr))] gap-0.5 mx-auto w-full max-w-2xl aspect-square p-2 text-xs font-bold text-center bg-green-100 rounded-lg shadow-2xl border-2 border-zinc-800">
-                {/* Ligne 1 (0 à 10) */}
+            <div className="grid grid-cols-[repeat(11,minmax(0,1fr))] grid-rows-[repeat(11,minmax(0,1fr))] gap-0.5 mx-auto w-full max-w-2xl aspect-square p-2 text-xs font-bold text-center bg-green-100 border-3 border-red-500 shadow-2xl">
                 <div className="col-start-1 row-start-1 w-full h-full">
                     <Case players={gameState.players} property={monopolyBoard[0]} position="corner" onClick={() => setSelectedSquare(monopolyBoard[0])} />
                 </div>
@@ -107,7 +119,6 @@ function BoardInner({ gameId }: { gameId?: string }) {
                     <Case players={gameState.players} property={monopolyBoard[10]} position="corner" onClick={() => setSelectedSquare(monopolyBoard[10])} />
                 </div>
 
-                {/* Colonne droite (11 à 19) */}
                 <div className="col-start-11 row-start-2 w-full h-full">
                     <Case players={gameState.players} property={monopolyBoard[11]} ownerColor={getSquareOwner(11).color} level={getSquareOwner(11).level} position="left" onClick={() => setSelectedSquare(monopolyBoard[11])} />
                 </div>
@@ -136,7 +147,6 @@ function BoardInner({ gameId }: { gameId?: string }) {
                     <Case players={gameState.players} property={monopolyBoard[19]} ownerColor={getSquareOwner(19).color} level={getSquareOwner(19).level} position="left" onClick={() => setSelectedSquare(monopolyBoard[19])} />
                 </div>
 
-                {/* Ligne haut (20 à 29) */}
                 <div className="col-start-11 row-start-11 w-full h-full">
                     <Case players={gameState.players} property={monopolyBoard[20]} position="corner" onClick={() => setSelectedSquare(monopolyBoard[20])} />
                 </div>
@@ -168,7 +178,6 @@ function BoardInner({ gameId }: { gameId?: string }) {
                     <Case players={gameState.players} property={monopolyBoard[29]} ownerColor={getSquareOwner(29).color} level={getSquareOwner(29).level} position="top" onClick={() => setSelectedSquare(monopolyBoard[29])} />
                 </div>
 
-                {/* Colonne gauche (30 à 39) */}
                 <div className="col-start-1 row-start-11 w-full h-full">
                     <Case players={gameState.players} property={monopolyBoard[30]} position="corner" onClick={() => setSelectedSquare(monopolyBoard[30])} />
                 </div>
@@ -200,13 +209,11 @@ function BoardInner({ gameId }: { gameId?: string }) {
                     <Case players={gameState.players} property={monopolyBoard[39]} ownerColor={getSquareOwner(39).color} level={getSquareOwner(39).level} position="right" onClick={() => setSelectedSquare(monopolyBoard[39])} />
                 </div>
 
-                {/* Centre : Dés et Tour par tour */}
                 <div className="col-start-2 col-end-11 row-start-2 row-end-11 flex items-center justify-center p-2">
                     <Des />
                 </div>
             </div>
 
-            {/* Modale Titre de Propriété */}
             <PropertyDeedModal
                 square={selectedSquare}
                 ownerName={selectedOwner?.name}
@@ -219,7 +226,6 @@ function BoardInner({ gameId }: { gameId?: string }) {
                 onClose={() => setSelectedSquare(null)}
             />
 
-            {/* Modale Carte Chance / Caisse */}
             {gameState.activeCard && (
                 <DisplayCard
                     cardLabel={gameState.activeCard.label}
@@ -228,13 +234,9 @@ function BoardInner({ gameId }: { gameId?: string }) {
                 />
             )}
 
-            {/* Modale Règles */}
             <Rules isOpen={rulesOpen} onClose={() => setRulesOpen(false)} />
-
-            {/* Modale Historique */}
             <History isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
 
-            {/* Modale Victoire Monopoly DA */}
             {gameState.winnerId && (
                 <VictoryModal
                     winner={
@@ -279,3 +281,5 @@ export function Board() {
         </GameProvider>
     );
 }
+
+export default Board;

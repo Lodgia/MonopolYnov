@@ -218,7 +218,6 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                 className="w-full max-w-4xl bg-white border-3 border-red-500 p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header Modal */}
                 <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
                     <div className="flex items-center gap-2">
                         <h3 id="rules-modal-title" className="font-bold text-base text-red-500 uppercase">
@@ -236,9 +235,7 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                     </div>
                 </div>
 
-                {/* 2 Colonnes DA Projet (Bleu 300 / Blanc / Bordures Rouges) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                    {/* Colonne gauche : Catégories */}
                     <div className="flex flex-col gap-2 bg-blue-300 border-3 border-red-500 p-3.5">
                         <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
                             Sections ({RULE_SECTIONS.length})
@@ -267,18 +264,15 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                         </div>
                     </div>
 
-                    {/* Colonne droite : Contenu des règles */}
                     <div className="md:col-span-2 flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5 text-xs max-h-[60vh] overflow-y-auto">
                         <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
                             {activeSection.icon} {activeSection.title} ({activeSection.label})
                         </span>
 
-                        {/* Intro */}
                         <div className="bg-white border-2 border-red-500 p-3 font-bold text-zinc-900 leading-relaxed shadow-sm">
                             {activeSection.introduction}
                         </div>
 
-                        {/* Grille de cartes */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {activeSection.cards.map((card) => (
                                 <div

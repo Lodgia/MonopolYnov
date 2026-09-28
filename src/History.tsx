@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { listGameHistory, getMeUser, type Game, type UserMe } from "./Game.ts";
+import { MonopolyButton } from "./Components/ui/MonopolyButton.tsx";
 
 interface HistoryProps {
     isOpen?: boolean;
@@ -30,7 +31,7 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
             setMe(meRes);
             setHistory(histRes);
         } catch (err) {
-            console.error("Erreur historique:", err);
+            console.error(err);
             setError("Impossible de charger l'historique des parties");
         } finally {
             setLoading(false);
@@ -57,7 +58,6 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
 
     if (!isOpen) return null;
 
-    // Calculs de statistiques
     let totalWins = 0;
     history.forEach((g) => {
         try {
@@ -68,9 +68,7 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
                 const parsed = JSON.parse(g.state);
                 if (me && parsed.winnerId === me.id) totalWins++;
             }
-        } catch {
-            // ignore
-        }
+        } catch {}
     });
 
     const winRate = history.length > 0 ? Math.round((totalWins / history.length) * 100) : 0;
@@ -86,7 +84,6 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
                 className="w-full max-w-4xl bg-white border-3 border-red-500 p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header Modal */}
                 <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
                     <div className="flex items-center gap-2">
                         <h3 className="font-bold text-base text-red-500 uppercase tracking-wide">
@@ -95,28 +92,16 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="border-2 border-blue-500">
-                            <button
-                                onClick={fetchHistory}
-                                className="inline-block border-2 border-white text-xs font-bold p-1 px-2.5 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition"
-                            >
-                                🔄 Actualiser
-                            </button>
-                        </div>
-                        <div className="border-2 border-red-500">
-                            <button
-                                onClick={handleClose}
-                                className="inline-block border-2 border-white text-xs font-bold p-1 px-2 bg-red-500 text-white cursor-pointer hover:bg-red-600 transition"
-                            >
-                                ✕ Fermer
-                            </button>
-                        </div>
+                        <MonopolyButton variant="primary" size="sm" onClick={fetchHistory}>
+                            🔄 Actualiser
+                        </MonopolyButton>
+                        <MonopolyButton variant="danger" size="sm" onClick={handleClose}>
+                            ✕ Fermer
+                        </MonopolyButton>
                     </div>
                 </div>
 
-                {/* 2 Colonnes DA Projet (Bleu 300 / Blanc / Bordures Rouges) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                    {/* Colonne gauche : Statistiques du joueur */}
                     <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5">
                         <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1 uppercase">
                             Statistiques Joueur
@@ -149,7 +134,6 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
                         </div>
                     </div>
 
-                    {/* Colonne droite : Liste des parties terminées */}
                     <div className="md:col-span-2 flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5 text-xs max-h-[60vh] overflow-y-auto">
                         <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1 uppercase">
                             Parties terminées ({history.length})
@@ -191,9 +175,7 @@ export default function History({ isOpen = true, onClose }: HistoryProps) {
                                                 if (me && parsed.winnerId === me.id) isWin = true;
                                             }
                                         }
-                                    } catch {
-                                        // ignore
-                                    }
+                                    } catch {}
 
                                     const formattedDate = g.endedAt
                                         ? new Date(g.endedAt).toLocaleDateString("fr-FR", {

@@ -1,7 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useGame } from "./GameContext.tsx";
 import { monopolyBoard } from "./allCases.ts";
 import { property } from "./Property.ts";
+import { DiceDisplay } from "./Components/board/DiceDisplay.tsx";
+import { PlayerBadgeList } from "./Components/board/PlayerBadgeList.tsx";
+import { MonopolyButton } from "./Components/ui/MonopolyButton.tsx";
 
 export function Des() {
     const {
@@ -17,8 +20,6 @@ export function Des() {
 
     const [timer, setTimer] = useState<number>(0);
     const [isRollingAnim, setIsRollingAnim] = useState<boolean>(false);
-    const lastTurnIdRef = useRef<number | null>(null);
-    const lastRolledRef = useRef<boolean>(false);
 
     const currentSq = activePlayer ? monopolyBoard[activePlayer.c] : null;
     const isProperty = currentSq && (currentSq.type === "property" || currentSq.type === "station" || currentSq.type === "utility");
@@ -27,7 +28,6 @@ export function Des() {
     const isUnowned = isProperty && propState && propState.ownerId <= 0;
     const canAfford = propObj && activePlayer && activePlayer.money >= propObj.price;
 
-    // Trigger visual dice roll animation when diceRoll updates
     useEffect(() => {
         if (gameState.diceRoll) {
             setIsRollingAnim(true);
@@ -36,14 +36,12 @@ export function Des() {
         }
     }, [gameState.diceRoll?.total]);
 
-    // Automatic turn transition & cooldown timer
     useEffect(() => {
         if (!isMyTurn || gameState.winnerId) {
             setTimer(0);
             return;
         }
 
-        // Case 1: Active player has not yet rolled -> countdown 15s to auto-roll
         if (!gameState.hasRolled) {
             setTimer(15);
             const interval = setInterval(() => {
@@ -59,7 +57,6 @@ export function Des() {
             return () => clearInterval(interval);
         }
 
-        // Case 2: Active player has rolled and made a double -> countdown to auto-re-roll or let them buy
         if (canRollAgain) {
             setTimer(isUnowned && canAfford ? 8 : 4);
             const interval = setInterval(() => {
@@ -75,9 +72,6 @@ export function Des() {
             return () => clearInterval(interval);
         }
 
-        // Case 3: Active player has rolled normal turn
-        // If unowned and can afford: 8s to decide, then auto-pass
-        // If cannot buy or already resolved: 3.5s auto-pass to next player
         const initialDelay = isUnowned && canAfford ? 8 : 3;
         setTimer(initialDelay);
 
@@ -116,7 +110,6 @@ export function Des() {
 
     return (
         <div className="flex flex-col items-center justify-between w-full h-full max-w-sm p-3.5 bg-white border-3 border-red-500 shadow-2xl text-zinc-900 select-none font-sans rounded-none">
-            {/* 1. Header Joueur Actif & Solde DA */}
             <div className="w-full bg-blue-300 border-2 border-red-500 p-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-2 overflow-hidden">
                     <span
@@ -129,6 +122,9 @@ export function Des() {
                         <div className="flex items-center gap-1.5">
                             <h2 className="text-xs font-black uppercase tracking-tight text-zinc-900 truncate">
                                 {activePlayer?.name ?? "Joueur"}
+                                {activePlayer?.hasLeft && (
+                                    <span className="text-[8px] text-red-600 font-bold ml-1">(A quitté)</span>
+                                )}
                             </h2>
                             {isMyTurn && (
                                 <span className="border border-red-500">
@@ -152,48 +148,14 @@ export function Des() {
                 </div>
             </div>
 
-            {/* 2. Affichage des Dés DA */}
             <div className="flex flex-col items-center gap-2 my-2 w-full">
-                <div className="flex items-center gap-3">
-                    {/* Dé 1 */}
-                    <div className="flex flex-col items-center">
-                        <div
-                            className={`w-11 h-11 bg-white border-2 border-red-500 shadow flex items-center justify-center text-red-600 font-mono text-xl font-black transition-transform ${
-                                isRollingAnim ? "scale-110 rotate-12" : ""
-                            }`}
-                        >
-                            {gameState.diceRoll ? gameState.diceRoll.dice1 : "-"}
-                        </div>
-                    </div>
+                <DiceDisplay
+                    dice1={gameState.diceRoll?.dice1 ?? null}
+                    dice2={gameState.diceRoll?.dice2 ?? null}
+                    total={gameState.diceRoll?.total ?? null}
+                    isRolling={isRollingAnim}
+                />
 
-                    <span className="text-base font-black text-red-500">+</span>
-
-                    {/* Dé 2 */}
-                    <div className="flex flex-col items-center">
-                        <div
-                            className={`w-11 h-11 bg-white border-2 border-red-500 shadow flex items-center justify-center text-red-600 font-mono text-xl font-black transition-transform ${
-                                isRollingAnim ? "scale-110 -rotate-12" : ""
-                            }`}
-                        >
-                            {gameState.diceRoll ? gameState.diceRoll.dice2 : "-"}
-                        </div>
-                    </div>
-
-                    <span className="text-base font-black text-red-500">=</span>
-
-                    {/* Total */}
-                    <div className="flex flex-col items-center">
-                        <div
-                            className={`w-11 h-11 bg-red-500 border-2 border-white shadow flex items-center justify-center text-white font-mono text-xl font-black ${
-                                isRollingAnim ? "scale-115" : ""
-                            }`}
-                        >
-                            {gameState.diceRoll ? gameState.diceRoll.total : "-"}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Message d'action DA */}
                 {gameState.lastActionMessage && (
                     <div className="bg-blue-300 border-2 border-red-500 p-2 w-full text-center shadow-sm">
                         <p className="text-[10px] font-bold text-zinc-900 leading-snug">
@@ -203,60 +165,44 @@ export function Des() {
                 )}
             </div>
 
-            {/* 3. Boutons d'Action & Automatisation du Tour */}
             <div className="w-full flex flex-col gap-2 pt-1">
-                {/* Si le joueur est en prison */}
                 {activePlayer?.inJail && isMyTurn && !gameState.hasRolled && (
-                    <div className="border-2 border-red-500">
-                        <button
-                            type="button"
-                            onClick={payJailFine}
-                            className="inline-block border-2 border-white text-xs font-bold p-2 bg-red-500 text-white w-full cursor-pointer hover:bg-red-600 transition"
-                        >
-                            🔓 Payer la caution (50 €)
-                        </button>
-                    </div>
+                    <MonopolyButton
+                        variant="danger"
+                        fullWidth
+                        onClick={payJailFine}
+                    >
+                        🔓 Payer la caution (50 €)
+                    </MonopolyButton>
                 )}
 
-                {/* Bouton de Lancer de Dés (ou Rejouer Double) */}
-                {!gameState.hasRolled || canRollAgain ? (
-                    <div className="border-2 border-blue-500">
-                        <button
-                            type="button"
-                            onClick={rollDice}
-                            disabled={!isMyTurn}
-                            className={`inline-block border-2 border-white text-xs font-black p-2.5 w-full uppercase tracking-wider transition ${
-                                isMyTurn
-                                    ? "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer active:scale-98 shadow-md"
-                                    : "bg-zinc-300 text-zinc-500 cursor-not-allowed"
-                            }`}
-                        >
-                            {isMyTurn
-                                ? canRollAgain
-                                    ? `🎲 Rejouer (Double !) (${timer}s)`
-                                    : `🎲 Lancer les dés (${timer}s)`
-                                : `⏳ En attente de ${activePlayer?.name ?? "l'adversaire"}...`}
-                        </button>
-                    </div>
-                ) : null}
+                {(!gameState.hasRolled || canRollAgain) && (
+                    <MonopolyButton
+                        variant="primary"
+                        fullWidth
+                        onClick={rollDice}
+                        disabled={!isMyTurn}
+                    >
+                        {isMyTurn
+                            ? canRollAgain
+                                ? `🎲 Rejouer (Double !) (${timer}s)`
+                                : `🎲 Lancer les dés (${timer}s)`
+                            : `⏳ En attente de ${activePlayer?.name ?? "l'adversaire"}...`}
+                    </MonopolyButton>
+                )}
 
-                {/* Boutons après avoir lancé : Acheter & Passage Auto */}
                 {gameState.hasRolled && (
                     <div className="flex flex-col gap-1.5 w-full">
-                        {/* Acheter la propriété si disponible */}
                         {isUnowned && canAfford && isMyTurn && (
-                            <div className="border-2 border-red-500">
-                                <button
-                                    type="button"
-                                    onClick={handleBuyAndFinish}
-                                    className="inline-block border-2 border-white text-xs font-bold p-2 bg-red-500 text-white w-full cursor-pointer hover:bg-red-600 transition shadow"
-                                >
-                                    🏠 Acheter {currentSq?.name} ({propObj?.price} €)
-                                </button>
-                            </div>
+                            <MonopolyButton
+                                variant="danger"
+                                fullWidth
+                                onClick={handleBuyAndFinish}
+                            >
+                                🏠 Acheter {currentSq?.name} ({propObj?.price} €)
+                            </MonopolyButton>
                         )}
 
-                        {/* Indicateur de passage automatique */}
                         {isMyTurn && !canRollAgain && (
                             <div className="flex items-center justify-between bg-blue-300 border border-red-400 px-2 py-1 text-[10px] font-bold text-zinc-800">
                                 <span>Passage automatique au joueur suivant</span>
@@ -272,37 +218,10 @@ export function Des() {
                 )}
             </div>
 
-            {/* 4. Grille des Joueurs DA */}
-            <div className="w-full mt-2 pt-2 border-t border-zinc-700">
-                <div className="grid grid-cols-2 gap-1.5">
-                    {gameState.players.map((p) => {
-                        const isActive = p.id === activePlayer?.id;
-                        return (
-                            <div
-                                key={p.id}
-                                className={`p-1.5 border-2 flex items-center justify-between text-[10px] transition-all ${
-                                    isActive
-                                        ? "bg-red-500 text-white border-white font-bold shadow-md"
-                                        : "bg-blue-300 text-zinc-900 border-red-500 font-semibold"
-                                }`}
-                            >
-                                <div className="flex items-center gap-1.5 truncate max-w-[100px]">
-                                    <span
-                                        style={p.color?.startsWith("#") ? { backgroundColor: p.color } : undefined}
-                                        className={`w-2.5 h-2.5 rounded-full border border-white shrink-0 ${
-                                            !p.color?.startsWith("#") ? (p.color || "bg-blue-500") : ""
-                                        }`}
-                                    />
-                                    <span className="truncate">{p.name}</span>
-                                </div>
-                                <span className={`font-mono font-bold shrink-0 ${isActive ? "text-white" : "text-zinc-900"}`}>
-                                    {p.money} €
-                                </span>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
+            <PlayerBadgeList
+                players={gameState.players}
+                activePlayerId={activePlayer?.id ?? null}
+            />
         </div>
     );
 }

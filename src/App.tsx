@@ -7,24 +7,27 @@ import HomePage from "./HomePage.tsx";
 import Error from "./Error.tsx";
 import { Board } from "./Board.tsx";
 import History from "./History.tsx";
+import { ToastProvider } from "./Components/notifications/ToastContext.tsx";
 
 export default function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/board" element={<Board />} />
+        <ToastProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/board" element={<Board />} />
 
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/history" element={<History />} />
-                    <Route path="/game/:id" element={<Board />} />
-                </Route>
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/home" element={<Home />} />
+                        <Route path="/history" element={<History />} />
+                        <Route path="/game/:id" element={<Board />} />
+                    </Route>
 
-                <Route path="*" element={<Error />} />
-            </Routes>
-        </BrowserRouter>
+                    <Route path="*" element={<Error />} />
+                </Routes>
+            </BrowserRouter>
+        </ToastProvider>
     );
 }

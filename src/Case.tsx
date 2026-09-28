@@ -6,6 +6,7 @@ export interface CasePlayerInfo {
     name: string;
     c: number;
     color: string;
+    hasLeft?: boolean;
 }
 
 interface CaseProps {
@@ -30,18 +31,18 @@ export function Case({
     const isProp = sq.type === "property" || sq.type === "station" || sq.type === "utility";
     const propObj = isProp ? (sq as property) : null;
 
-    const playersOnCase = players.filter((p) => p.c === sq.id);
+    const playersOnCase = players.filter((p) => p.c === sq.id && !p.hasLeft);
     const colorClass = propObj?.colorKey ? colorClasses[propObj.colorKey] : "";
 
-    const getSpecialIcon = (sq: Square) => {
-        if (sq.id === 0) return "🚩";
-        if (sq.id === 10) return "🔒";
-        if (sq.id === 20) return "🚗";
-        if (sq.id === 30) return "👮";
-        if (sq.type === "station") return "🚆";
-        if (sq.type === "utility") return sq.name.includes("Électricité") ? "⚡" : "💧";
-        if (sq.type === "special") {
-            const spec = sq as SpecialSquare;
+    const getSpecialIcon = (sqItem: Square) => {
+        if (sqItem.id === 0) return "🚩";
+        if (sqItem.id === 10) return "🔒";
+        if (sqItem.id === 20) return "🚗";
+        if (sqItem.id === 30) return "👮";
+        if (sqItem.type === "station") return "🚆";
+        if (sqItem.type === "utility") return sqItem.name.includes("Électricité") ? "⚡" : "💧";
+        if (sqItem.type === "special") {
+            const spec = sqItem as SpecialSquare;
             if (spec.subType === "chance") return "❓";
             if (spec.subType === "community") return "🎁";
             if (spec.subType === "tax") return "💰";
@@ -58,7 +59,6 @@ export function Case({
                 isHorizontal ? "flex-row" : "flex-col"
             } justify-between overflow-hidden rounded-[2px] transition-all hover:ring-2 hover:ring-amber-400 hover:z-20 cursor-pointer relative shadow-sm select-none`}
         >
-            {/* 1. Bandeau de couleur */}
             {colorClass && !isCorner && (
                 <div
                     className={`${colorClass} ${
@@ -91,7 +91,6 @@ export function Case({
                 </div>
             )}
 
-            {/* 2. Corps de la case */}
             <div
                 className={`flex-1 flex justify-between items-center p-0.5 min-w-0 min-h-0 ${
                     isHorizontal ? "flex-col [writing-mode:vertical-rl]" : "flex-col"
@@ -104,7 +103,6 @@ export function Case({
                     </h1>
                 </div>
 
-                {/* Pions */}
                 <div className="flex flex-wrap gap-0.5 justify-center items-center my-0.5 max-w-full">
                     {playersOnCase.map((p) => (
                         <div
@@ -118,7 +116,6 @@ export function Case({
                     ))}
                 </div>
 
-                {/* Prix */}
                 {propObj && propObj.price > 0 ? (
                     <p className="font-extrabold text-[8px] text-zinc-800 font-mono shrink-0">
                         {propObj.price} €
@@ -130,3 +127,5 @@ export function Case({
         </div>
     );
 }
+
+export default Case;

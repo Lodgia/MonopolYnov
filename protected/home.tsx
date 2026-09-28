@@ -20,13 +20,7 @@ import History from "../src/History.tsx";
 import { monopolyBoard } from "../src/allCases.ts";
 import { getUniquePawnColors, type SyncedPlayer, type SyncedGameState, type PropertyState } from "../src/GameContext.tsx";
 import { apiFetch } from "../api/client.ts";
-
-export interface BotPlayer {
-    id: number;
-    name: string;
-    difficulty: "easy" | "medium" | "hard";
-    color: string;
-}
+import { MonopolyButton } from "../src/Components/ui/MonopolyButton.tsx";
 
 const DEFAULT_SETTINGS: GameSettings & {
     boardMap?: string;
@@ -43,7 +37,7 @@ const DEFAULT_SETTINGS: GameSettings & {
     freeParkingPool: true,
     fastMode: false,
     isPrivate: false,
-    allowBots: true,
+    allowBots: false,
     boardTheme: "Classique",
     boardMap: "Classique",
     doubleRentFullSet: true,
@@ -76,7 +70,6 @@ export function Home({ players = [] }: HomeProps) {
 
     const [settings, setSettings] = useState(DEFAULT_SETTINGS);
     const [maxPlayers, setMaxPlayers] = useState(4);
-    const bots: BotPlayer[] = [];
 
     const [joinInputId, setJoinInputId] = useState("");
     const [inviteEmail, setInviteEmail] = useState("");
@@ -123,7 +116,6 @@ export function Home({ players = [] }: HomeProps) {
         const interval = setInterval(async () => {
             try {
                 const updated = await getGame(currentGame.id);
-                // Si l'utilisateur actuel a été expulsé par l'hôte du salon
                 if (currentUserId && !updated.players.some((p) => p.id === currentUserId)) {
                     setShowHostModal(false);
                     setCurrentGame(null);
@@ -138,7 +130,6 @@ export function Home({ players = [] }: HomeProps) {
                     navigate(`/game/${updated.id}`);
                 }
             } catch {
-                // Erreur 403 lorsque l'utilisateur est retiré de la table game_players
                 setShowHostModal(false);
                 setCurrentGame(null);
                 alert("Vous avez été expulsé du salon.");
@@ -255,7 +246,6 @@ export function Home({ players = [] }: HomeProps) {
         }
     };
 
-
     const updateSettingsField = async (field: string, value: unknown) => {
         const updated = { ...settings, [field]: value };
         setSettings(updated);
@@ -323,25 +313,46 @@ export function Home({ players = [] }: HomeProps) {
     return (
         <div className="min-h-screen w-full bg-blue-900 text-zinc-100 font-sans flex flex-col antialiased select-none">
             <header className="w-full px-6 border-b-3 border-red-500 bg-white flex items-center justify-between">
-                <img src="/logo.png" className="h-40"></img>
+                <img src="/logo.png" className="h-40" alt="Logo" />
                 <div className="flex items-center gap-3">
-                    <div className="border-2 border-blue-500"><button onClick={() => setHistoryOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition">Historique</button></div>
-                    <div className="border-2 border-blue-500"><button onClick={() => setRulesOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition">Règles</button></div>
-                    <div className="border-2 border-blue-500"><button onClick={() => setSettingsOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition">Paramètres</button></div>
-                    <div className="border-2 border-red-500"><button onClick={handleLogout} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-red-500 text-white cursor-pointer hover:bg-red-600 transition">Déconnexion</button></div>
+                    <MonopolyButton variant="primary" onClick={() => setHistoryOpen(true)}>
+                        Historique
+                    </MonopolyButton>
+                    <MonopolyButton variant="primary" onClick={() => setRulesOpen(true)}>
+                        Règles
+                    </MonopolyButton>
+                    <MonopolyButton variant="primary" onClick={() => setSettingsOpen(true)}>
+                        Paramètres
+                    </MonopolyButton>
+                    <MonopolyButton variant="danger" onClick={handleLogout}>
+                        Déconnexion
+                    </MonopolyButton>
                 </div>
             </header>
 
             <main className="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center gap-6">
                 <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button disabled={loading} onClick={handleOpenHostModal} className="w-full border-2 border-white text-[15px] font-bold p-3 bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md transition-all active:scale-95">{loading ? "Création..." : "Créer une partie"}</button>
-                    <button onClick={() => setShowJoinModal(true)} className="w-full border-2 border-white text-[15px] font-bold p-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer shadow-md transition-all active:scale-95">Rejoindre une partie</button>
+                    <button
+                        disabled={loading}
+                        onClick={handleOpenHostModal}
+                        className="w-full border-2 border-white text-[15px] font-bold p-3 bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md transition-all active:scale-95"
+                    >
+                        {loading ? "Création..." : "Créer une partie"}
+                    </button>
+                    <button
+                        onClick={() => setShowJoinModal(true)}
+                        className="w-full border-2 border-white text-[15px] font-bold p-3 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer shadow-md transition-all active:scale-95"
+                    >
+                        Rejoindre une partie
+                    </button>
                 </div>
 
                 <div className="w-full bg-white border-3 border-red-500 p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between border-b border-zinc-700 pb-2">
                         <span className="text-xs font-semibold text-red-500"> Salons en attente ({openGames.length}) </span>
-                        <button onClick={fetchGames} className="text-xs text-red-500 hover:text-blue-500 duration-400 cursor-pointer">{refreshing ? "Actualisation..." : "Actualiser"}</button>
+                        <button onClick={fetchGames} className="text-xs text-red-500 hover:text-blue-500 duration-400 cursor-pointer">
+                            {refreshing ? "Actualisation..." : "Actualiser"}
+                        </button>
                     </div>
 
                     <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
@@ -355,7 +366,9 @@ export function Home({ players = [] }: HomeProps) {
                                         <span className="text-xs font-mono font-bold text-red-500">Salon #{game.id}</span>
                                         <span className="text-[11px] text-zinc-400">({game.players.length}/{game.maxPlayers} joueurs)</span>
                                     </div>
-                                    <div className="border-2 border-blue-500"><button onClick={() => handleJoinGame(game.id)} className="inline-block border-2 border-white text-[10px] font-bold p-2 bg-blue-500 text-white">Rejoindre</button></div>
+                                    <MonopolyButton size="sm" variant="primary" onClick={() => handleJoinGame(game.id)}>
+                                        Rejoindre
+                                    </MonopolyButton>
                                 </div>
                             ))
                         )}
@@ -371,21 +384,31 @@ export function Home({ players = [] }: HomeProps) {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-base text-red-500">Salon #{currentGame.id}</h3>
-                                        <button onClick={copyShareUrl} className="text-xs px-2 py-0.5 bg-blue-500 text-zinc-300 cursor-pointer">{copied ? "Copié !" : "Copier lien"}</button>
+                                        <button onClick={copyShareUrl} className="text-xs px-2 py-0.5 bg-blue-500 text-zinc-300 cursor-pointer">
+                                            {copied ? "Copié !" : "Copier lien"}
+                                        </button>
                                     </div>
-                                    <span className="text-xs text-emerald-400">{currentGame.status === "pending" ? "🟢 En attente de joueurs" : "🔴 Partie lancée"}</span>
+                                    <span className="text-xs text-emerald-400">
+                                        {currentGame.status === "pending" ? "🟢 En attente de joueurs" : "🔴 Partie lancée"}
+                                    </span>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button onClick={handleRefreshCurrentGame} className="text-xs px-2.5 py-1 bg-blue-500 text-zinc-300 cursor-pointer" title="Actualiser les joueurs">{refreshing ? "..." : "Actualiser"}</button>
-                                <button onClick={() => setShowHostModal(false)} className="text-zinc-400 hover:text-white text-base px-2 py-0.5 rounded cursor-pointer">✕</button>
+                                <button onClick={handleRefreshCurrentGame} className="text-xs px-2.5 py-1 bg-blue-500 text-zinc-300 cursor-pointer" title="Actualiser les joueurs">
+                                    {refreshing ? "..." : "Actualiser"}
+                                </button>
+                                <button onClick={() => setShowHostModal(false)} className="text-zinc-400 hover:text-white text-base px-2 py-0.5 rounded cursor-pointer">
+                                    ✕
+                                </button>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                             <div className="flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5">
-                                <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">Joueurs connectés ({currentPlayers.length}/{maxPlayers})</span>
+                                <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
+                                    Joueurs connectés ({currentPlayers.length}/{maxPlayers})
+                                </span>
 
                                 <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
                                     {currentPlayers.map((player) => {
@@ -404,7 +427,9 @@ export function Home({ players = [] }: HomeProps) {
                                                         <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">Hôte</span>
                                                     ) : (
                                                         isHost && (
-                                                            <button onClick={() => handleKickPlayer(player.id)} className="text-xs text-red-400 hover:text-red-300 px-1.5 py-0.5" title="Retirer">Expulser</button>
+                                                            <button onClick={() => handleKickPlayer(player.id)} className="text-xs text-red-400 hover:text-red-300 px-1.5 py-0.5" title="Retirer">
+                                                                Expulser
+                                                            </button>
                                                         )
                                                     )}
                                                 </div>
@@ -420,7 +445,15 @@ export function Home({ players = [] }: HomeProps) {
                                 </div>
 
                                 <div className="flex items-center gap-1.5 pt-2 border-t border-zinc-800">
-                                    <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="email@ynov.com" className="flex-1 bg-blue-500 border border-zinc-700 rounded px-2.5 py-1 text-xs text-white outline-none focus:border-purple-500" onKeyDown={(e) => {if (e.key === "Enter") handleSendInvite();}} />
+                                    <input
+                                        value={inviteEmail}
+                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                        placeholder="email@ynov.com"
+                                        className="flex-1 bg-blue-500 border border-zinc-700 rounded px-2.5 py-1 text-xs text-white outline-none"
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleSendInvite();
+                                        }}
+                                    />
                                     <button onClick={handleSendInvite} className="text-xs px-2.5 py-1 bg-blue-500 duration-300 hover:bg-white text-black rounded font-medium cursor-pointer">
                                         Inviter
                                     </button>
@@ -434,7 +467,15 @@ export function Home({ players = [] }: HomeProps) {
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-black">Joueurs max</span>
-                                    <select value={maxPlayers} onChange={(e) => { const val = Number(e.target.value); setMaxPlayers(val); updateSettingsField("maxPlayers", val);}} className="bg-zinc-800 border border-zinc-700 text-white rounded px-2 py-0.5 text-xs outline-none cursor-pointer">
+                                    <select
+                                        value={maxPlayers}
+                                        onChange={(e) => {
+                                            const val = Number(e.target.value);
+                                            setMaxPlayers(val);
+                                            updateSettingsField("maxPlayers", val);
+                                        }}
+                                        className="bg-zinc-800 border border-zinc-700 text-white rounded px-2 py-0.5 text-xs outline-none cursor-pointer"
+                                    >
                                         <option value={2}>2 joueurs</option>
                                         <option value={3}>3 joueurs</option>
                                         <option value={4}>4 joueurs</option>
@@ -445,22 +486,22 @@ export function Home({ players = [] }: HomeProps) {
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-black">Salon privé</span>
-                                    <input type="checkbox" checked={settings.isPrivate} onChange={(e) => updateSettingsField("isPrivate", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
+                                    <input type="checkbox" checked={settings.isPrivate} onChange={(e) => updateSettingsField("isPrivate", e.target.checked)} className="accent-blue-500 cursor-pointer" />
                                 </div>
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-black">Loyer x2 sur groupe</span>
-                                    <input type="checkbox" checked={settings.doubleRentFullSet} onChange={(e) => updateSettingsField("doubleRentFullSet", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
+                                    <input type="checkbox" checked={settings.doubleRentFullSet} onChange={(e) => updateSettingsField("doubleRentFullSet", e.target.checked)} className="accent-blue-500 cursor-pointer" />
                                 </div>
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-black">Cagnotte Parc Gratuit</span>
-                                    <input type="checkbox" checked={settings.vacationCash} onChange={(e) => updateSettingsField("vacationCash", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
+                                    <input type="checkbox" checked={settings.vacationCash} onChange={(e) => updateSettingsField("vacationCash", e.target.checked)} className="accent-blue-500 cursor-pointer" />
                                 </div>
 
                                 <div className="flex items-center justify-between">
                                     <span className="text-black">Vente aux enchères</span>
-                                    <input type="checkbox" checked={settings.auction} onChange={(e) => updateSettingsField("auction", e.target.checked)} className="accent-blue-500 cursor-pointer"/>
+                                    <input type="checkbox" checked={settings.auction} onChange={(e) => updateSettingsField("auction", e.target.checked)} className="accent-blue-500 cursor-pointer" />
                                 </div>
                             </div>
                         </div>
@@ -471,9 +512,17 @@ export function Home({ players = [] }: HomeProps) {
                             </span>
 
                             <div className="flex items-center gap-2">
-                                <div className="border-2 border-blue-500"><button onClick={() => setShowHostModal(false)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Fermer</button></div>
+                                <MonopolyButton variant="primary" onClick={() => setShowHostModal(false)}>
+                                    Fermer
+                                </MonopolyButton>
                                 {isHost ? (
-                                    <div className="border-2 border-blue-500"><button disabled={loading || !canStart} onClick={handleStartCurrentGame} className={`inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white ${ canStart ? "bg-purple-600 hover:bg-purple-500 text-white shadow-sm" : "bg-blue-500 text-white cursor-not-allowed"}`}>{loading ? "Lancement..." : "Démarrer la partie"}</button></div>
+                                    <MonopolyButton
+                                        variant="success"
+                                        disabled={loading || !canStart}
+                                        onClick={handleStartCurrentGame}
+                                    >
+                                        {loading ? "Lancement..." : "Démarrer la partie"}
+                                    </MonopolyButton>
                                 ) : (
                                     <span className="text-xs text-amber-500 font-bold px-2 py-1">En attente de l'hôte pour lancer la partie...</span>
                                 )}
@@ -514,15 +563,13 @@ export function Home({ players = [] }: HomeProps) {
                                         }
                                     }}
                                 />
-                                <div className="border-2 border-blue-500">
-                                    <button
-                                        disabled={loading || !joinInputId.trim()}
-                                        onClick={() => handleJoinGame(Number(joinInputId))}
-                                        className="inline-block border-2 border-white text-xs font-bold p-2 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 transition"
-                                    >
-                                        Entrer
-                                    </button>
-                                </div>
+                                <MonopolyButton
+                                    variant="primary"
+                                    disabled={loading || !joinInputId.trim()}
+                                    onClick={() => handleJoinGame(Number(joinInputId))}
+                                >
+                                    Entrer
+                                </MonopolyButton>
                             </div>
                         </div>
 
@@ -556,7 +603,15 @@ export function Home({ players = [] }: HomeProps) {
             <VictoryModal winner={winner} />
             <Rules isOpen={rulesOpen} onClose={() => setRulesOpen(false)} />
             <History isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
-            {settingOpen && ( <Settings onClose={() => { setSettingsOpen(false); const c = localStorage.getItem("user_color"); if (c) setUserColor(c); }} /> )}
+            {settingOpen && (
+                <Settings
+                    onClose={() => {
+                        setSettingsOpen(false);
+                        const c = localStorage.getItem("user_color");
+                        if (c) setUserColor(c);
+                    }}
+                />
+            )}
         </div>
     );
 }

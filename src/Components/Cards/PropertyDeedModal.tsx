@@ -1,5 +1,6 @@
 import { property, colorNamesFr, colorClasses } from "../../Property.ts";
 import type { Square } from "../../Property.ts";
+import { MonopolyButton } from "../ui/MonopolyButton.tsx";
 
 interface PropertyDeedModalProps {
     square: Square | null;
@@ -36,14 +37,13 @@ export default function PropertyDeedModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 select-none"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 select-none font-sans"
             onClick={onClose}
         >
             <div
                 className="w-full max-w-xs overflow-hidden bg-white border-3 border-red-500 text-zinc-900 shadow-2xl transition-all"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Bandeau de couleur / Titre */}
                 {isProp && propObj.type === "property" && (
                     <div className={`${colorClass} p-3 text-center text-white border-b-2 border-zinc-900`}>
                         <p className="text-[9px] font-bold uppercase tracking-widest opacity-90">
@@ -58,7 +58,6 @@ export default function PropertyDeedModal({
                     </div>
                 )}
 
-                {/* Titre pour Station / Compagnie / Spécial */}
                 {(!isProp || propObj.type !== "property") && (
                     <div className="bg-zinc-900 p-3 text-center text-white border-b-2 border-zinc-900">
                         <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-400">
@@ -70,9 +69,7 @@ export default function PropertyDeedModal({
                     </div>
                 )}
 
-                {/* Corps de la carte */}
                 <div className="p-4 space-y-3 text-xs">
-                    {/* Statut Propriétaire */}
                     <div className="flex items-center justify-between rounded bg-zinc-100 p-2 border border-zinc-200">
                         <span className="text-[11px] font-bold text-zinc-500 uppercase">Propriétaire :</span>
                         {ownerName ? (
@@ -88,7 +85,6 @@ export default function PropertyDeedModal({
                         )}
                     </div>
 
-                    {/* Grille des Loyers pour Propriété normale */}
                     {isProp && propObj.type === "property" && (
                         <div className="space-y-1 font-mono text-[11px] border-t border-b border-zinc-200 py-2">
                             <div className={`flex justify-between py-0.5 px-1 rounded ${currentLevel === 0 ? "bg-zinc-100 font-bold" : ""}`}>
@@ -133,7 +129,6 @@ export default function PropertyDeedModal({
                         </div>
                     )}
 
-                    {/* Grille pour Gare */}
                     {isStation && (
                         <div className="space-y-1 font-mono text-[11px] border-t border-b border-zinc-200 py-2">
                             <div className="flex justify-between py-0.5"><span className="text-zinc-600">1 gare possédée :</span><span>25 €</span></div>
@@ -147,7 +142,6 @@ export default function PropertyDeedModal({
                         </div>
                     )}
 
-                    {/* Grille pour Service Public */}
                     {isUtility && (
                         <div className="space-y-1 font-mono text-[11px] border-t border-b border-zinc-200 py-2">
                             <div className="text-[10px] text-zinc-600 leading-relaxed">
@@ -163,43 +157,42 @@ export default function PropertyDeedModal({
                         </div>
                     )}
 
-                    {/* Actions directes (Acheter / Construire) */}
                     {(canBuy || canUpgrade) && (
                         <div className="space-y-1.5 pt-1">
                             {canBuy && (
-                                <button
-                                    type="button"
+                                <MonopolyButton
+                                    variant="success"
+                                    fullWidth
                                     onClick={() => {
                                         onBuy?.();
                                         onClose();
                                     }}
-                                    className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer shadow"
                                 >
                                     Acheter ({propObj.price ?? 200} €)
-                                </button>
+                                </MonopolyButton>
                             )}
                             {canUpgrade && (
-                                <button
-                                    type="button"
+                                <MonopolyButton
+                                    variant="primary"
+                                    fullWidth
                                     onClick={() => {
                                         onUpgrade?.();
                                         onClose();
                                     }}
-                                    className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer shadow"
                                 >
                                     Construire ({propObj.costHouse} €)
-                                </button>
+                                </MonopolyButton>
                             )}
                         </div>
                     )}
 
-                    <button
-                        type="button"
+                    <MonopolyButton
+                        variant="secondary"
+                        fullWidth
                         onClick={onClose}
-                        className="w-full py-1.5 rounded border border-zinc-300 hover:bg-zinc-100 text-zinc-600 font-semibold text-xs transition cursor-pointer"
                     >
                         Fermer
-                    </button>
+                    </MonopolyButton>
                 </div>
             </div>
         </div>
