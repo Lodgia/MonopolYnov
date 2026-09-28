@@ -27,7 +27,7 @@ export function VictoryModal({ winner }: VictoryModalProps) {
                 <p className="victory-modal-eyebrow">Partie terminée</p>
                 <h2 id="victory-title">Victoire de {winner.name}</h2>
                 <p>
-                    Il ne reste plus que {winner.name} avec de l&apos;argent sur le
+                    Il ne reste plus que {winner.name} avec de l'argent sur le
                     plateau.
                 </p>
                 <p className="victory-modal-balance">

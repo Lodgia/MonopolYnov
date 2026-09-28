@@ -3,16 +3,15 @@ import { Case } from "./Case.tsx";
 import { Player } from "./Player.ts";
 import {monopolyBoard} from "./allCases.ts"
 
+
 export function Board(){
-        
-    const player = new Player(1,"",1,5000,"bg-blue-500")    
-    const player2 = new Player(2,"",1,5000,"bg-red-500")
+    
     return (
     <>
     
     <div className="grid grid-cols-[1.5fr_repeat(9,1fr)_1.5fr] grid-rows-[1.5fr_repeat(9,1fr)_1.5fr] gap-0.5 w-full h-full max-w-2xl aspect-square p-2 text-xs font-bold text-center bg-green-100">
 
-        <div className="col-start-1 row-start-1 w-full h-full"><Case players={[player,player2]} property={monopolyBoard[0]} position="corner"/></div>
+        <div className="col-start-1 row-start-1 w-full h-full"><Case players={[players]} property={monopolyBoard[0]} position="corner"/></div>
         <div className="col-start-2 row-start-1 w-full h-full "><Case players={[player]} property={monopolyBoard[1]} position="bottom"/></div>
         <div className="col-start-3 row-start-1 w-full h-full"><Case players={[player]} property={monopolyBoard[2]} position="bottom"/></div>
         <div className="col-start-4 row-start-1 w-full h-full"><Case players={[player]} property={monopolyBoard[3]} position="bottom"/></div>
