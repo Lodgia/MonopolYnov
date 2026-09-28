@@ -2,11 +2,7 @@ function rollDice(){
     return Math.random()*6
 }
 
-interface desProps{
-    ():[number,number]
-}
-
-export function des( props : desProps){
+export function des(){
     let de1 = rollDice()
     let de2 = rollDice()
     return (

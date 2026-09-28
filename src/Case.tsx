@@ -1,5 +1,5 @@
 import { Player } from "./Player.ts";
-import { property, Square } from "./Property.ts";
+import { property, type Square } from "./Property.ts";
 
 
 interface CaseProps {
