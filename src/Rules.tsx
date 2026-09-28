@@ -23,7 +23,7 @@ export const RULE_SECTIONS: RuleSection[] = [
         label: 'Objectif & Lancement',
         color: 'bg-emerald-600',
         icon: '🎲',
-        introduction: 'Devenez le dernier magnat encore en jeu en achetant des terrains et en faisant payer des loyers à vos adversaires.',
+        introduction: 'Devenez le dernier joueur encore en jeu en achetant des terrains et en faisant payer des loyers à vos adversaires.',
         cards: [
             { 
                 title: 'Objectif du jeu', 
@@ -192,7 +192,6 @@ interface RulesModalProps {
 export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
     const [activeSection, setActiveSection] = useState<RuleSection>(RULE_SECTIONS[0])
 
-    // Handle Escape key to close
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -209,129 +208,104 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 select-none"
             role="dialog"
             aria-modal="true"
             aria-labelledby="rules-modal-title"
             onClick={onClose}
         >
             <div
-                className="flex max-h-[min(700px,calc(100vh-2rem))] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-2xl md:flex-row"
+                className="w-full max-w-4xl bg-white border-3 border-red-500 p-5 sm:p-6 flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Volet Latéral / Menu des catégories */}
-                <aside className="flex w-full shrink-0 flex-col border-b border-zinc-800 bg-zinc-950 p-4 md:w-60 md:border-b-0 md:border-r">
-                    <div className="mb-4 flex items-center justify-between">
-                        <div>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 font-bold">
-                                MonopolYnov
-                            </span>
-                            <h2 id="rules-modal-title" className="text-base font-bold text-white tracking-tight">
-                                Règles du Jeu
-                            </h2>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex h-7 w-7 items-center justify-center rounded border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white md:hidden cursor-pointer"
-                            aria-label="Fermer"
-                        >
-                            ✕
-                        </button>
+                {/* Header Modal */}
+                <div className="flex items-center justify-between border-b border-zinc-700 pb-3">
+                    <div className="flex items-center gap-2">
+                        <h3 id="rules-modal-title" className="font-bold text-base text-red-500 uppercase">
+                            Règles du jeu - MonopolYnov
+                        </h3>
                     </div>
 
-                    {/* Liste des onglets */}
-                    <nav className="flex gap-1.5 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
-                        {RULE_SECTIONS.map((section) => {
-                            const isActive = activeSection.id === section.id
-                            return (
-                                <button
-                                    key={section.id}
-                                    type="button"
-                                    onClick={() => setActiveSection(section)}
-                                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium transition cursor-pointer whitespace-nowrap md:whitespace-normal ${
-                                        isActive
-                                            ? 'bg-zinc-800 text-white border border-zinc-700 font-semibold shadow-sm'
-                                            : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
-                                    }`}
-                                >
-                                    <span className="text-sm shrink-0">{section.icon}</span>
-                                    <span className="truncate">{section.title}</span>
-                                </button>
-                            )
-                        })}
-                    </nav>
-
-                    <div className="mt-auto hidden pt-4 md:block">
+                    <div className="border-2 border-red-500">
                         <button
-                            type="button"
                             onClick={onClose}
-                            className="w-full rounded border border-zinc-700 bg-zinc-800 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 hover:text-white transition cursor-pointer"
+                            className="inline-block border-2 border-white text-xs font-bold p-1 bg-red-500 text-white cursor-pointer"
                         >
-                            Fermer
+                            ✕ Fermer
                         </button>
                     </div>
-                </aside>
+                </div>
 
-                {/* Zone Principale de Contenu */}
-                <div className="flex min-h-0 flex-1 flex-col bg-zinc-900">
-                    {/* Header de la section active façon carte Monopoly */}
-                    <header className="border-b border-zinc-800 bg-zinc-900/60 p-4 sm:p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`h-8 w-2 rounded-full ${activeSection.color}`} />
-                            <div>
-                                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                                    {activeSection.label}
-                                </span>
-                                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                                    <span>{activeSection.icon}</span> {activeSection.title}
-                                </h3>
-                            </div>
+                {/* 2 Colonnes DA Projet (Bleu 300 / Blanc / Bordures Rouges) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    {/* Colonne gauche : Catégories */}
+                    <div className="flex flex-col gap-2 bg-blue-300 border-3 border-red-500 p-3.5">
+                        <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
+                            Sections ({RULE_SECTIONS.length})
+                        </span>
+
+                        <div className="flex flex-col gap-2">
+                            {RULE_SECTIONS.map((section) => {
+                                const isActive = activeSection.id === section.id
+                                return (
+                                    <div
+                                        key={section.id}
+                                        className={`border-2 ${isActive ? 'border-red-500' : 'border-blue-500'}`}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveSection(section)}
+                                            className={`inline-block border-2 border-white text-xs font-bold p-2 w-full text-left cursor-pointer transition ${
+                                                isActive ? 'bg-red-500 text-white' : 'bg-blue-500 text-white hover:bg-blue-600'
+                                            }`}
+                                        >
+                                            <span className="mr-1.5">{section.icon}</span> {section.title}
+                                        </button>
+                                    </div>
+                                )
+                            })}
                         </div>
+                    </div>
 
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="hidden h-7 w-7 items-center justify-center rounded border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white md:flex cursor-pointer text-xs"
-                            title="Fermer (Échap)"
-                        >
-                            ✕
-                        </button>
-                    </header>
+                    {/* Colonne droite : Contenu des règles */}
+                    <div className="md:col-span-2 flex flex-col gap-3 bg-blue-300 border-3 border-red-500 p-3.5 text-xs max-h-[60vh] overflow-y-auto">
+                        <span className="text-xs font-semibold text-red-500 border-b border-zinc-750 pb-1">
+                            {activeSection.icon} {activeSection.title} ({activeSection.label})
+                        </span>
 
-                    {/* Contenu Défilable */}
-                    <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-                        {/* Encart résumé / introduction */}
-                        <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3.5 text-xs text-zinc-300 leading-relaxed">
+                        {/* Intro */}
+                        <div className="bg-white border-2 border-red-500 p-3 font-bold text-zinc-900 leading-relaxed shadow-sm">
                             {activeSection.introduction}
                         </div>
 
-                        {/* Grille des cartes de règles */}
-                        <div className="grid gap-3 sm:grid-cols-2">
+                        {/* Grille de cartes */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {activeSection.cards.map((card) => (
-                                <article
+                                <div
                                     key={card.title}
-                                    className="flex flex-col justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-4 transition-colors hover:border-zinc-700"
+                                    className="bg-white border-2 border-red-500 p-3 flex flex-col justify-between gap-2 shadow-sm"
                                 >
                                     <div>
-                                        <div className="flex items-center justify-between gap-2 mb-2">
-                                            <h4 className="font-semibold text-xs text-white">
+                                        <div className="flex items-center justify-between border-b border-zinc-200 pb-1 mb-1.5">
+                                            <span className="font-bold text-red-500 text-xs uppercase">
                                                 {card.title}
-                                            </h4>
+                                            </span>
                                             {card.badge && (
-                                                <span className="rounded bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shrink-0">
-                                                    {card.badge}
+                                                <span className="border-2 border-blue-500">
+                                                    <span className="inline-block border-2 border-white text-[9px] font-bold p-0.5 px-1 bg-blue-500 text-white">
+                                                        {card.badge}
+                                                    </span>
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed">
+                                        <p className="text-zinc-800 text-[11px] leading-relaxed">
                                             {card.text}
                                         </p>
                                     </div>
-                                </article>
+                                </div>
                             ))}
                         </div>
-                    </main>
+                    </div>
                 </div>
             </div>
         </div>

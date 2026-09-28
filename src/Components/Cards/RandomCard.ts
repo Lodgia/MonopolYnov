@@ -1,57 +1,169 @@
-export type CardType = "communityCards" | "luckyCards";
+export type CardType = "communityCards" | "luckyCards" | "chance" | "community";
 
-export interface CardResult {
+export interface GameCard {
+    title: string;
     label: string;
+    type: "chance" | "community" | "luckyCards" | "communityCards";
     amount?: number;
+    moneyChange?: number;
     destination?: number;
+    moveTo?: number;
     passStart?: boolean;
     goToJail?: boolean;
+    getOutOfJail?: boolean;
     jailFree?: boolean;
     birthday?: boolean;
     repairRate?: { house: number; hotel: number };
 }
 
-const cards: Record<CardType, CardResult[]> = {
-    communityCards: [
-        { label: "Vous avez gagné le prix des mots croisés : recevez F10 000.", amount: 100 },
-        { label: "Votre immeuble et votre prêt rapportent : touchez F15 000.", amount: 150 },
-        { label: "La banque vous verse un dividende de F5 000.", amount: 50 },
-        { label: "Payez pour frais de scolarité : F15 000.", amount: -150 },
-        { label: "Amende pour ivresse : payez F2 000.", amount: -20 },
-        { label: "Amende pour excès de vitesse : payez F1 500.", amount: -15 },
-        { label: "Réparations : versez F2 500 par maison et F10 000 par hôtel.", repairRate: { house: 25, hotel: 100 } },
-        { label: "Réparations de voirie : versez F4 000 par maison et F11 500 par hôtel.", repairRate: { house: 40, hotel: 115 } },
-        { label: "Vous êtes libéré de prison. Cette carte peut être conservée jusqu’à son utilisation ou sa vente.", jailFree: true },
-        { label: "Allez en prison. Ne passez pas par la case départ, ne touchez pas F20 000.", goToJail: true },
-        { label: "Reculez de trois cases.", destination: -3 },
-        { label: "Rendez-vous à la gare la plus proche. Si vous passez par la case départ, recevez F20 000.", destination: -1, passStart: true },
-        { label: "Avancez jusqu’à la Gare de Lyon. Si vous passez par la case départ, recevez F20 000.", destination: 15, passStart: true },
-        { label: "Avancez au Boulevard de la Villette. Si vous passez par la case départ, recevez F20 000.", destination: 11, passStart: true },
-        { label: "Rendez-vous à l’Avenue Henri-Martin. Si vous passez par la case départ, recevez F20 000.", destination: 24, passStart: true },
-        { label: "Rendez-vous à la Rue de la Paix.", destination: 39 },
-        { label: "Avancez jusqu’à la case départ. Touchez F20 000.", destination: 0 },
-    ],
-    luckyCards: [
-        { label: "Placez-vous sur la case départ. Touchez F20 000.", destination: 0 },
-        { label: "Retournez à Belleville.", destination: 1 },
-        { label: "Allez en prison. Ne passez pas par la case départ, ne touchez pas F20 000.", goToJail: true },
-        { label: "Vous êtes libéré de prison. Cette carte peut être conservée jusqu’à son utilisation ou sa vente.", jailFree: true },
-        { label: "Erreur de la banque en votre faveur : recevez F20 000.", amount: 200 },
-        { label: "Recevez votre revenu annuel : F10 000.", amount: 100 },
-        { label: "Héritage : vous touchez F10 000.", amount: 100 },
-        { label: "La vente de votre stock vous rapporte F5 000.", amount: 50 },
-        { label: "Intérêts sur l’emprunt à 7 % : recevez F2 500.", amount: 25 },
-        { label: "Les contributions vous remboursent F2 000.", amount: 20 },
-        { label: "C’est votre anniversaire ! Chaque joueur vous donne F1 000.", birthday: true },
-        { label: "Vous avez gagné le 2e Prix de Beauté : recevez F1 000.", amount: 10 },
-        { label: "Payez votre police d’assurance : F5 000.", amount: -50 },
-        { label: "Payez la note du médecin : F5 000.", amount: -50 },
-        { label: "Payez une amende de F1 000.", amount: -10 },
-        { label: "Rendez-vous à la gare la plus proche. Si vous passez par la case départ, recevez F20 000.", destination: -1, passStart: true },
-    ],
-};
+export const CHANCE_CARDS: GameCard[] = [
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Avancez jusqu'à la case Départ. Recevez 200 €.",
+        destination: 0,
+        moveTo: 0,
+        amount: 200,
+        moneyChange: 200,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Rendez-vous à la Rue de la Paix.",
+        destination: 39,
+        moveTo: 39,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Avancez jusqu'à la Gare de Lyon. Si vous passez par la case Départ, recevez 200 €.",
+        destination: 15,
+        moveTo: 15,
+        passStart: true,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "La banque vous verse un dividende de 50 €.",
+        amount: 50,
+        moneyChange: 50,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Vous avez gagné le concours de mots croisés : recevez 100 €.",
+        amount: 100,
+        moneyChange: 100,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Amende pour excès de vitesse : payez 50 € à la banque.",
+        amount: -50,
+        moneyChange: -50,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Frais de scolarité : payez 150 €.",
+        amount: -150,
+        moneyChange: -150,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Allez en prison. Rendez-vous directement en prison sans passer par la case Départ.",
+        goToJail: true,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Votre immeuble et votre prêt rapportent : touchez 150 €.",
+        amount: 150,
+        moneyChange: 150,
+    },
+    {
+        title: "Carte Chance",
+        type: "chance",
+        label: "Vous êtes libéré de prison. Cette carte peut être conservée.",
+        jailFree: true,
+        getOutOfJail: true,
+    },
+];
 
-export default function RandomCard(cardType: CardType): CardResult {
-    const deck = cards[cardType];
-    return deck[Math.floor(Math.random() * deck.length)];
+export const COMMUNITY_CARDS: GameCard[] = [
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Erreur de la banque en votre faveur : recevez 200 €.",
+        amount: 200,
+        moneyChange: 200,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Héritage : vous touchez 100 € de la succession.",
+        amount: 100,
+        moneyChange: 100,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Les contributions vous remboursent un trop-perçu de 50 €.",
+        amount: 50,
+        moneyChange: 50,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Payez la note du médecin : versez 50 €.",
+        amount: -50,
+        moneyChange: -50,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Payez votre police d'assurance hospitalière : 100 €.",
+        amount: -100,
+        moneyChange: -100,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "C'est votre anniversaire : recevez 20 € de la banque.",
+        amount: 20,
+        moneyChange: 20,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Allez en prison. Rendez-vous directement en prison sans passer par la case Départ.",
+        goToJail: true,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Vente de votre stock usagé : vous recevez 50 €.",
+        amount: 50,
+        moneyChange: 50,
+    },
+    {
+        title: "Caisse de Communauté",
+        type: "community",
+        label: "Vous êtes libéré de prison. Cette carte peut être conservée.",
+        jailFree: true,
+        getOutOfJail: true,
+    },
+];
+
+export function drawCard(cardType: CardType): GameCard {
+    const list = cardType === "chance" || cardType === "luckyCards" ? CHANCE_CARDS : COMMUNITY_CARDS;
+    const index = Math.floor(Math.random() * list.length);
+    return list[index];
+}
+
+export type CardResult = GameCard;
+
+export default function RandomCard(cardType: CardType): GameCard {
+    return drawCard(cardType);
 }

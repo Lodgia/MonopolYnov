@@ -10,7 +10,7 @@ export interface SquareActionContext {
 
 export type ColorsProp = "brown" | "cyan" | "pink" | "orange" | "red" | "yellow" | "green" | "blue" | "";
 
-const colorClasses = {
+export const colorClasses: Record<string, string> = {
     brown: "bg-yellow-950",
     cyan: "bg-blue-300",
     pink: "bg-pink-500",
@@ -19,6 +19,19 @@ const colorClasses = {
     yellow: "bg-amber-300",
     blue: "bg-blue-500",
     green: "bg-green-500",
+    "": "bg-zinc-700",
+};
+
+export const colorNamesFr: Record<string, string> = {
+    brown: "Marron",
+    cyan: "Bleu ciel",
+    pink: "Rose",
+    orange: "Orange",
+    red: "Rouge",
+    yellow: "Jaune",
+    green: "Vert",
+    blue: "Bleu foncé",
+    "": "Spécial",
 };
 
 export interface Square {
@@ -26,8 +39,10 @@ export interface Square {
     name: string;
     type: "property" | "station" | "utility" | "special";
     color?: string;
+    colorKey?: ColorsProp;
     price?: number;
-    action: (context: SquareActionContext) => number;
+    subType?: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail";
+    action?: (context: SquareActionContext) => number;
 }
 
 export class property implements Square {
@@ -40,10 +55,19 @@ export class property implements Square {
     allCost: number[];
     price: number;
     color: string;
+    colorKey: ColorsProp;
     level: number;
-    action: (context: SquareActionContext) => number;
+    action?: (context: SquareActionContext) => number;
 
-    constructor(id: number, name: string, type: "property" | "station" | "utility", costHouse: number, allCost: number[], price: number, color: ColorsProp) {
+    constructor(
+        id: number,
+        name: string,
+        type: "property" | "station" | "utility",
+        costHouse: number,
+        allCost: number[],
+        price: number,
+        color: ColorsProp
+    ) {
         this.id = id;
         this.name = name;
         this.type = type;
@@ -53,6 +77,7 @@ export class property implements Square {
         this.level = 0;
         this.allCost = allCost;
         this.price = price;
+        this.colorKey = color;
         this.color = color ? colorClasses[color] : "";
         this.action = ({ player, players, diceTotal }) => {
             if (this.buyBy === -1 || this.buyBy === player.id) return 0;
@@ -91,6 +116,24 @@ export class property implements Square {
     taxe(p: Player) {
         p.taxe(this.price);
     }
+
+    getRent(level: number = this.level, isFullGroup: boolean = false, stationCount: number = 1, diceTotal: number = 7): number {
+        if (this.type === "station") {
+            const stationRents = [25, 50, 100, 200];
+            const idx = Math.min(Math.max(stationCount - 1, 0), 3);
+            return stationRents[idx];
+        }
+
+        if (this.type === "utility") {
+            return stationCount >= 2 ? diceTotal * 10 : diceTotal * 4;
+        }
+
+        if (level === 0) {
+            return isFullGroup ? this.allCost[0] * 2 : this.allCost[0];
+        }
+
+        return this.allCost[Math.min(level, this.allCost.length - 1)] ?? this.allCost[0];
+    }
 }
 
 export class SpecialSquare implements Square {
@@ -98,9 +141,13 @@ export class SpecialSquare implements Square {
     name: string;
     type: "special";
     subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail";
-    action: (context: SquareActionContext) => number;
+    action?: (context: SquareActionContext) => number;
 
-    constructor(id: number, name: string, subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail") {
+    constructor(
+        id: number,
+        name: string,
+        subType: "start" | "chance" | "community" | "tax" | "jail" | "parking" | "go-to-jail"
+    ) {
         this.id = id;
         this.name = name;
         this.type = "special";

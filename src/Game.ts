@@ -131,3 +131,28 @@ export async function listMyGames(): Promise<Game[]> {
 export async function listOpenGames(): Promise<Game[]> {
   return apiFetch<Game[]>("/games/open");
 }
+
+export async function listGameHistory(): Promise<Game[]> {
+  return apiFetch<Game[]>("/games/history");
+}
+
+export async function setGameState(
+  gameId: number,
+  data: { state: string; currentTurnUserId?: number; ended?: boolean; endData?: string }
+): Promise<Game> {
+  return apiFetch<Game>(`/games/${gameId}/state`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export interface UserMe {
+  id: number;
+  email: string;
+  profilePicture: string | null;
+  color: string;
+}
+
+export async function getMeUser(): Promise<UserMe> {
+  return apiFetch<UserMe>("/auth/me");
+}
