@@ -10,7 +10,7 @@ export type RuleSection = {
     id: string
     title: string
     label: string
-    color: string // Tailwind border/bg color class
+    color: string
     icon: string
     introduction: string
     cards: RuleCard[]

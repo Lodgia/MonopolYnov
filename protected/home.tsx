@@ -291,41 +291,27 @@ export function Home({ players = [] }: HomeProps) {
     const canStart = currentGame && currentPlayers.length >= (currentGame.minPlayers ?? 2);
 
     return (
-        <div className="min-h-screen w-full bg-zinc-900 text-zinc-100 font-sans flex flex-col antialiased select-none">
-            {/* 1. Header Minimal */}
-            <header className="w-full px-6 py-3 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between">
-                <span className="font-bold text-base tracking-tight text-white">MonopolYnov</span>
+        <div className="min-h-screen w-full bg-blue-900 text-zinc-100 font-sans flex flex-col antialiased select-none">
+            <header className="w-full px-6 border-b-3 border-red-500 bg-white flex items-center justify-between">
+                <img src="/logo.png" className="h-40"></img>
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setRulesOpen(true)}
-                        className="px-3 py-1 text-xs text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-500 rounded bg-zinc-800 cursor-pointer"
-                    >
-                        Règles
-                    </button>
-                    <button
-                        onClick={handleLogout}
-                        className="px-3 py-1 text-xs text-red-400 hover:text-red-300 border border-zinc-800 hover:border-red-900 rounded bg-zinc-900 cursor-pointer"
-                    >
-                        Déconnexion
-                    </button>
+                    <div className="border-2 border-blue-500"><button onClick={() => setRulesOpen(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Règles</button></div>
+                    <div className="border-2 border-red-500"><button onClick={handleLogout} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-red-500 text-white">Déconnexion</button></div>
                 </div>
             </header>
 
-            {/* 2. Contenu Accueil : Pion & Actions Rapides */}
             <main className="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 flex flex-col items-center justify-center gap-6">
                 
-                {/* Boîte Sélection du Pion */}
-                <div className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-5 flex flex-col items-center gap-4 shadow-sm">
+                <div className="w-full bg-white border-3 border-red-500 p-5 flex flex-col items-center gap-4 shadow-sm">
                     <div className="text-center">
-                        <h2 className="text-sm font-semibold text-zinc-200">
+                        <h2 className="text-sm font-semibold text-red-500">
                             Sélectionnez votre pion
                         </h2>
-                        <p className="text-xs text-zinc-400 mt-0.5">
-                            Choisissez la couleur de votre avatar sur le plateau
+                        <p className="text-xs text-red-300 mt-0.5">
+                            Choisissez la couleur de votre pion sur le plateau
                         </p>
                     </div>
 
-                    {/* Grille 4x3 des 12 Pions */}
                     <div className="grid grid-cols-4 gap-3 p-1">
                         {PAWN_COLORS.map((pawn) => {
                             const isSelected = selectedPawn.id === pawn.id;
@@ -355,44 +341,16 @@ export function Home({ players = [] }: HomeProps) {
                     </div>
                 </div>
 
-                {/* 3 Boutons d'Action Principaux */}
                 <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <button
-                        disabled={loading}
-                        onClick={handleOpenHostModal}
-                        className="py-3 px-4 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-semibold text-sm rounded-lg transition cursor-pointer shadow-sm text-center"
-                    >
-                        {loading ? "Création..." : "Créer une partie"}
-                    </button>
-
-                    <button
-                        disabled={loading}
-                        onClick={handleSoloGame}
-                        className="py-3 px-4 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-750 text-zinc-200 border border-zinc-700 font-semibold text-sm rounded-lg transition cursor-pointer text-center"
-                    >
-                        Mode Solo (vs IA)
-                    </button>
-
-                    <button
-                        onClick={() => setShowJoinModal(true)}
-                        className="py-3 px-4 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-750 text-zinc-200 border border-zinc-700 font-semibold text-sm rounded-lg transition cursor-pointer text-center"
-                    >
-                        Rejoindre une partie
-                    </button>
+                    <button disabled={loading} onClick={handleOpenHostModal} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">{loading ? "Création..." : "Créer une partie"}</button>
+                    <button disabled={loading} onClick={handleSoloGame} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Mode Solo (vs IA)</button>
+                    <button onClick={() => setShowJoinModal(true)} className="inline-block border-2 border-white text-[15px] font-bold p-2 bg-blue-500 text-white">Rejoindre une partie</button>
                 </div>
 
-                {/* Liste des Salons en attente */}
-                <div className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-4 flex flex-col gap-3">
+                <div className="w-full bg-white border-3 border-red-500 p-4 flex flex-col gap-3">
                     <div className="flex items-center justify-between border-b border-zinc-700 pb-2">
-                        <span className="text-xs font-semibold text-zinc-300">
-                            Salons en attente ({openGames.length})
-                        </span>
-                        <button
-                            onClick={fetchGames}
-                            className="text-xs text-zinc-400 hover:text-white cursor-pointer"
-                        >
-                            {refreshing ? "Actualisation..." : "Actualiser"}
-                        </button>
+                        <span className="text-xs font-semibold text-red-500"> Salons en attente ({openGames.length}) </span>
+                        <button onClick={fetchGames} className="text-xs text-red-500 hover:text-blue-500 duration-400 cursor-pointer">{refreshing ? "Actualisation..." : "Actualiser"}</button>
                     </div>
 
                     <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
@@ -400,23 +358,15 @@ export function Home({ players = [] }: HomeProps) {
                             <p className="text-xs text-zinc-500 py-3 text-center">Aucun salon public en attente pour le moment</p>
                         ) : (
                             openGames.map((game) => (
-                                <div
-                                    key={game.id}
-                                    className="flex items-center justify-between p-2.5 bg-zinc-900 border border-zinc-700 hover:border-zinc-500 rounded-lg transition"
-                                >
+                                <div key={game.id} className="flex items-center justify-between p-2.5 bg-white border-2 border-red-500">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                                        <span className="text-xs font-mono font-bold text-white">Salon #{game.id}</span>
+                                        <span className="text-xs font-mono font-bold text-red-500">Salon #{game.id}</span>
                                         <span className="text-[11px] text-zinc-400">
                                             ({game.players.length}/{game.maxPlayers} joueurs)
                                         </span>
                                     </div>
-                                    <button
-                                        onClick={() => handleJoinGame(game.id)}
-                                        className="text-xs px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white font-medium rounded cursor-pointer transition"
-                                    >
-                                        Rejoindre
-                                    </button>
+                                    <div className="border-2 border-blue-500"><button onClick={() => handleJoinGame(game.id)} className="inline-block border-2 border-white text-[10px] font-bold p-2 bg-blue-500 text-white">Rejoindre</button></div>
                                 </div>
                             ))
                         )}
