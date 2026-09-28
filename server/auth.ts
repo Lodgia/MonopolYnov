@@ -151,6 +151,32 @@ export async function updateColor(req: Request): Promise<Response> {
   return json({ success: true, color });
 }
 
+export async function updateUsername(req: Request): Promise<Response> {
+  const user = await requireAuth(req);
+  const body = await readJsonBody(req);
+  const username = requireString(body, "username").trim();
+
+  if (!username || username.length < 2) {
+    throw new HttpError(400, "Le pseudo doit contenir au moins 2 caractères");
+  }
+
+  const existing = (await sql`
+    SELECT id FROM users WHERE email = ${username} AND id != ${user.id} LIMIT 1
+  `) as UserRow[];
+
+  if (existing.length > 0) {
+    throw new HttpError(409, "Ce pseudo ou email est déjà utilisé");
+  }
+
+  await sql`
+    UPDATE users
+    SET email = ${username}
+    WHERE id = ${user.id}
+  `;
+
+  return json({ success: true, email: username, username });
+}
+
 export async function getMe(req: Request): Promise<Response> {
   const user = await requireAuth(req);
   const rows = (await sql`

@@ -1,33 +1,31 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ProtectedRoute from "../auth/protected.tsx";
-import { Login } from "../auth/login/login.tsx";
-import { Signup } from "../auth/signup/signup.tsx";
-import { Home } from "../protected/home.tsx";
-import HomePage from "./HomePage.tsx";
-import Error from "./Error.tsx";
-import { Board } from "./Board.tsx";
-import History from "./History.tsx";
-import { ToastProvider } from "./Components/notifications/ToastContext.tsx";
+import { Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./routes/ProtectedRoute.tsx";
+import { LoginPage } from "./pages/LoginPage.tsx";
+import { SignupPage } from "./pages/SignupPage.tsx";
+import { LobbyPage } from "./pages/LobbyPage.tsx";
+import { HomePage } from "./pages/HomePage.tsx";
+import { NotFoundPage } from "./pages/NotFoundPage.tsx";
+import { Board } from "./components/board/Board.tsx";
+import { HistoryModal } from "./components/modals/HistoryModal.tsx";
+import { ToastProvider } from "./context/ToastContext.tsx";
 
 export default function App() {
     return (
         <ToastProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/board" element={<Board />} />
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/board" element={<Board />} />
 
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/home" element={<Home />} />
-                        <Route path="/history" element={<History />} />
-                        <Route path="/game/:id" element={<Board />} />
-                    </Route>
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/home" element={<LobbyPage />} />
+                    <Route path="/history" element={<HistoryModal />} />
+                    <Route path="/game/:id" element={<Board />} />
+                </Route>
 
-                    <Route path="*" element={<Error />} />
-                </Routes>
-            </BrowserRouter>
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
         </ToastProvider>
     );
 }

@@ -3,7 +3,7 @@
 // list this implements, and openapi.yaml (browsable at /docs) for full
 // request/response details.
 import "./db.ts";
-import { checkSession, getMe, login, signup, updateColor, updatePassword } from "./auth.ts";
+import { checkSession, getMe, login, signup, updateColor, updatePassword, updateUsername } from "./auth.ts";
 import { serveDocsPage, serveOpenApiSpec } from "./docs.ts";
 import { CORS_HEADERS, HttpError, json } from "./http.ts";
 import {
@@ -49,6 +49,8 @@ const routes: Route[] = [
   route("PUT", "/auth/password", (req) => updatePassword(req)),
   route("POST", "/auth/change-color", (req) => updateColor(req)),
   route("PUT", "/auth/color", (req) => updateColor(req)),
+  route("POST", "/auth/change-username", (req) => updateUsername(req)),
+  route("PUT", "/auth/username", (req) => updateUsername(req)),
 
   route("POST", "/games", (req) => createGame(req)),
   route("GET", "/games/mine", (req) => listMyGames(req)),
