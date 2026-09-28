@@ -3,15 +3,11 @@ import { useState, useEffect } from 'react'
 export type RuleCard = {
     title: string
     text: string
-    badge?: string
 }
 
 export type RuleSection = {
     id: string
     title: string
-    label: string
-    color: string
-    icon: string
     introduction: string
     cards: RuleCard[]
 }
@@ -20,165 +16,126 @@ export const RULE_SECTIONS: RuleSection[] = [
     {
         id: 'start',
         title: 'Début de partie',
-        label: 'Objectif & Lancement',
-        color: 'bg-emerald-600',
-        icon: '🎲',
-        introduction: 'Devenez le dernier magnat encore en jeu en achetant des terrains et en faisant payer des loyers à vos adversaires.',
+        introduction: 'Le but : acheter des terrains et rester le dernier joueur en jeu.',
         cards: [
-            { 
-                title: 'Objectif du jeu', 
-                text: 'Achetez des propriétés, construisez des maisons et des hôtels, puis percevez des loyers pour ruiner les autres joueurs et éviter la faillite.',
-                badge: 'But'
+            {
+                title: 'Votre objectif',
+                text: 'Achetez des propriétés, construisez dessus et percevez des loyers.',
             },
-            { 
-                title: 'Capital initial', 
-                text: 'Chaque joueur débute la partie avec 1 500 € en liquide distribués par la banque pour démarrer ses premiers investissements.',
-                badge: '1 500 €'
+            {
+                title: 'L’argent de départ',
+                text: 'La banque donne 1 500 € à chaque joueur au début de la partie.',
             },
-            { 
-                title: 'Le vainqueur', 
-                text: 'La partie s’arrête lorsqu’il ne reste plus qu’un seul joueur solvable. Ce joueur remporte la victoire.',
-                badge: 'Victoire'
+            {
+                title: 'Qui gagne ?',
+                text: 'La partie se termine quand il ne reste qu’un joueur qui n’a pas fait faillite.',
             },
         ],
     },
     {
         id: 'turn',
-        title: 'Déroulement du tour',
-        label: 'Mécaniques de tour',
-        color: 'bg-blue-600',
-        icon: '🔄',
-        introduction: 'À votre tour, lancez les deux dés, avancez votre pion et appliquez l’effet de la case sur laquelle vous vous arrêtez.',
+        title: 'Votre tour',
+        introduction: 'Lancez les dés, avancez votre pion et faites ce qu’indique la case.',
         cards: [
-            { 
-                title: 'Déplacement & Doubles', 
-                text: 'Avancez dans le sens des aiguilles d’une montre selon la somme des dés. Si vous faites un double, vous rejouez un tour complet après avoir résolu votre case.',
-                badge: 'Dés'
+            {
+                title: 'Les dés',
+                text: 'Avancez du total obtenu. Si les deux dés affichent le même nombre, vous rejouez après avoir fait ce que demande la case.',
             },
-            { 
-                title: 'Trois doubles consécutifs', 
-                text: 'Si vous obtenez 3 doubles d’affilée au cours du même tour, vous êtes immédiatement envoyé en prison sans passer par la case Départ.',
-                badge: 'Prison'
+            {
+                title: 'Trois doubles de suite',
+                text: 'Au troisième double d’affilée, allez directement en prison sans passer par Départ.',
             },
-            { 
-                title: 'Achat de propriété libre', 
-                text: 'Si vous atterrissez sur une propriété sans propriétaire, vous pouvez l’acheter à la banque pour le prix affiché sur le plateau.',
-                badge: 'Achat'
+            {
+                title: 'Acheter un terrain',
+                text: 'La case est libre ? Vous pouvez l’acheter à la banque au prix indiqué sur le plateau.',
             },
-            { 
-                title: 'Paiement du loyer', 
-                text: 'Si la propriété appartient déjà à un autre joueur, vous devez lui verser le loyer indiqué sur sa carte de titre de propriété.',
-                badge: 'Loyer'
+            {
+                title: 'Payer un loyer',
+                text: 'La propriété appartient à un autre joueur ? Payez-lui le loyer indiqué sur sa carte.',
             },
         ],
     },
     {
         id: 'properties',
-        title: 'Propriétés & Bâtiments',
-        label: 'Gestion du patrimoine',
-        color: 'bg-amber-600',
-        icon: '🏠',
-        introduction: 'Regroupez les quartiers d’une même couleur pour doubler vos loyers et construire des bâtiments.',
+        title: 'Terrains et maisons',
+        introduction: 'Réunissez toutes les propriétés d’une couleur pour construire et gagner plus de loyers.',
         cards: [
-            { 
-                title: 'Monopole de couleur', 
-                text: 'Posséder toutes les propriétés d’un même groupe de couleur double le loyer des terrains nus et autorise la construction de maisons.',
-                badge: 'Monopole'
+            {
+                title: 'Avoir toute une couleur',
+                text: 'Le loyer des terrains sans maison double. Vous pouvez aussi y construire des maisons.',
             },
-            { 
-                title: 'Construction équilibrée', 
-                text: 'Vous devez construire de façon homogène : interdiction de poser une 2ème maison sur un terrain tant que les autres terrains du groupe n’en ont pas au moins une.',
-                badge: 'Maisons'
+            {
+                title: 'Construire des maisons',
+                text: 'Construisez à parts égales : chaque terrain doit avoir une maison avant d’en ajouter une deuxième sur un autre.',
             },
-            { 
-                title: 'Hôtels luxueux', 
-                text: 'Après 4 maisons sur une propriété, vous pouvez les échanger contre un hôtel en payant le coût requis. Un seul hôtel par case.',
-                badge: 'Hôtel'
+            {
+                title: 'Remplacer par un hôtel',
+                text: 'Après quatre maisons sur un terrain, vous pouvez les remplacer par un hôtel en payant son prix.',
             },
-            { 
-                title: 'Gares & Compagnies', 
-                text: 'Le loyer des gares augmente avec le nombre de gares possédées (25, 50, 100, 200 €). Le loyer des services publics dépend du résultat des dés (x4 ou x10).',
-                badge: 'Services'
+            {
+                title: 'Gares et services',
+                text: 'Le loyer des gares augmente avec leur nombre. Pour les services, il dépend du résultat des dés.',
             },
         ],
     },
     {
         id: 'special',
         title: 'Cases spéciales',
-        label: 'Événements & Taxes',
-        color: 'bg-purple-600',
-        icon: '❓',
-        introduction: 'Certaines cases du plateau déclenchent des bonus financiers, des taxes ou des tirages de cartes surprises.',
+        introduction: 'Certaines cases vous font gagner ou payer de l’argent, ou vous font piocher une carte.',
         cards: [
-            { 
-                title: 'Case Départ', 
-                text: 'Chaque fois que vous passez ou vous arrêtez sur la case Départ, la banque vous verse automatiquement une prime de 200 €.',
-                badge: '+200 €'
+            {
+                title: 'Départ',
+                text: 'La banque vous verse 200 € quand vous passez par Départ ou vous arrêtez dessus.',
             },
-            { 
-                title: 'Chance & Caisse de communauté', 
-                text: 'Tirez la première carte du paquet correspondant, lisez son effet à voix haute et appliquez immédiatement la consigne (gain, perte, déplacement).',
-                badge: 'Cartes'
+            {
+                title: 'Chance et Caisse de communauté',
+                text: 'Piochez une carte et suivez ce qu’elle indique.',
             },
-            { 
-                title: 'Impôts & Taxes', 
-                text: 'Payez immédiatement à la banque le montant forfaitaire exigé par la case (ex: Impôt sur le revenu ou Taxe de luxe).',
-                badge: 'Taxe'
+            {
+                title: 'Impôts et taxes',
+                text: 'Payez à la banque le montant indiqué sur la case.',
             },
-            { 
-                title: 'Parc Gratuit', 
-                text: 'Une zone neutre de repos où il ne se passe rien : aucun paiement n’est requis et aucune somme n’est perçue.',
-                badge: 'Repos'
+            {
+                title: 'Parc Gratuit',
+                text: 'Vous pouvez vous y arrêter sans payer ni recevoir d’argent.',
             },
         ],
     },
     {
         id: 'jail',
         title: 'La Prison',
-        label: 'Enfermement & Évasion',
-        color: 'bg-rose-600',
-        icon: '🔒',
-        introduction: 'La prison limite vos mouvements sur le plateau mais ne vous empêche pas de percevoir vos loyers habituels !',
+        introduction: 'En prison, vous ne bougez pas, mais vous continuez à recevoir vos loyers.',
         cards: [
-            { 
-                title: 'Comment y aller', 
-                text: 'Vous allez directement en prison en tombant sur la case "Allez en prison", en tirant une carte punitive ou en faisant 3 doubles consécutifs.',
-                badge: 'Entrée'
+            {
+                title: 'Aller en prison',
+                text: 'Vous y allez si une case ou une carte vous l’ordonne, ou si vous faites trois doubles de suite.',
             },
-            { 
-                title: 'Comment en sortir', 
-                text: 'Obtenez un double lors de vos 3 prochains tours, payez une amende de 50 € avant de lancer les dés, ou utilisez une carte "Vous êtes libéré de prison".',
-                badge: 'Sortie'
+            {
+                title: 'En sortir',
+                text: 'Faites un double en trois tours, payez 50 € avant de lancer les dés, ou utilisez une carte de sortie.',
             },
-            { 
-                title: 'Visite simple', 
-                text: 'Si vous atterrissez sur la case Prison lors d’un déplacement normal sans y être envoyé, vous êtes en "Simple Visite" sans pénalité.',
-                badge: 'Visite'
+            {
+                title: 'Simple visite',
+                text: 'Si votre déplacement vous amène sur la case Prison, vous êtes simplement de passage.',
             },
         ],
     },
     {
         id: 'endgame',
-        title: 'Faillite & Victoire',
-        label: 'Fin de la partie',
-        color: 'bg-zinc-800',
-        icon: '🏆',
-        introduction: 'Quand un joueur ne peut plus honorer ses dettes, il doit déclarer faillite et quitter la partie.',
+        title: 'Faillite et fin de partie',
+        introduction: 'Si vous ne pouvez pas payer, vous pouvez vendre ou hypothéquer vos biens. Sinon, vous faites faillite.',
         cards: [
-            { 
-                title: 'Hypothèque & Vente', 
-                text: 'Pour réunir des liquidités, vous pouvez revendre vos maisons/hôtels à la banque pour la moitié de leur prix ou hypothéquer des terrains nus.',
-                badge: 'Sauvetage'
+            {
+                title: 'Vendre ou hypothéquer',
+                text: 'Vous pouvez vendre vos maisons et hôtels à moitié prix, ou hypothéquer un terrain sans maison.',
             },
-            { 
-                title: 'Déclaration de faillite', 
-                text: 'Si votre trésorerie et la valeur de vos biens ne suffisent pas à régler votre créancier, vous êtes éliminé. Vos biens reviennent au créancier.',
-                badge: 'Élimination'
+            {
+                title: 'Faire faillite',
+                text: 'Si vous ne pouvez toujours pas payer, vous quittez la partie et vos biens vont à la personne à qui vous devez de l’argent.',
             },
-            { 
-                title: 'Victoire finale', 
-                text: 'Le dernier joueur survivant après l’élimination de tous ses adversaires est proclamé vainqueur de MonopolYnov !',
-                badge: 'Vainqueur'
+            {
+                title: 'Gagner la partie',
+                text: 'Le dernier joueur qui n’a pas fait faillite gagne.',
             },
         ],
     },
@@ -216,32 +173,28 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
             onClick={onClose}
         >
             <div
-                className="flex max-h-[min(700px,calc(100vh-2rem))] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-2xl md:flex-row"
+                className="flex max-h-[min(700px,calc(100vh-2rem))] w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-100 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Volet Latéral / Menu des catégories */}
-                <aside className="flex w-full shrink-0 flex-col border-b border-zinc-800 bg-zinc-950 p-4 md:w-60 md:border-b-0 md:border-r">
-                    <div className="mb-4 flex items-center justify-between">
-                        <div>
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-red-500 font-bold">
-                                MonopolYnov
-                            </span>
-                            <h2 id="rules-modal-title" className="text-base font-bold text-white tracking-tight">
-                                Règles du Jeu
-                            </h2>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex h-7 w-7 items-center justify-center rounded border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white md:hidden cursor-pointer"
-                            aria-label="Fermer"
-                        >
-                            ✕
-                        </button>
+                <header className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
+                    <div>
+                        <span className="text-xs font-medium text-zinc-400">MonopolYnov</span>
+                        <h2 id="rules-modal-title" className="text-lg font-semibold text-white">
+                            Les règles du jeu
+                        </h2>
                     </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex h-8 w-8 items-center justify-center rounded text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+                        aria-label="Fermer les règles"
+                        title="Fermer (Échap)"
+                    >
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </header>
 
-                    {/* Liste des onglets */}
-                    <nav className="flex gap-1.5 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
+                <nav aria-label="Catégories des règles" className="flex gap-1 overflow-x-auto border-b border-zinc-800 px-4 py-2">
                         {RULE_SECTIONS.map((section) => {
                             const isActive = activeSection.id === section.id
                             return (
@@ -249,90 +202,36 @@ export default function Rules({ isOpen = true, onClose }: RulesModalProps) {
                                     key={section.id}
                                     type="button"
                                     onClick={() => setActiveSection(section)}
-                                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium transition cursor-pointer whitespace-nowrap md:whitespace-normal ${
+                                    aria-pressed={isActive}
+                                    className={`shrink-0 rounded px-3 py-2 text-left text-sm transition ${
                                         isActive
-                                            ? 'bg-zinc-800 text-white border border-zinc-700 font-semibold shadow-sm'
-                                            : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
+                                            ? 'bg-zinc-800 text-white'
+                                            : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
                                     }`}
                                 >
-                                    <span className="text-sm shrink-0">{section.icon}</span>
-                                    <span className="truncate">{section.title}</span>
+                                    {section.title}
                                 </button>
                             )
                         })}
-                    </nav>
+                </nav>
 
-                    <div className="mt-auto hidden pt-4 md:block">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="w-full rounded border border-zinc-700 bg-zinc-800 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 hover:text-white transition cursor-pointer"
-                        >
-                            Fermer
-                        </button>
-                    </div>
-                </aside>
-
-                {/* Zone Principale de Contenu */}
-                <div className="flex min-h-0 flex-1 flex-col bg-zinc-900">
-                    {/* Header de la section active façon carte Monopoly */}
-                    <header className="border-b border-zinc-800 bg-zinc-900/60 p-4 sm:p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className={`h-8 w-2 rounded-full ${activeSection.color}`} />
-                            <div>
-                                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                                    {activeSection.label}
-                                </span>
-                                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                                    <span>{activeSection.icon}</span> {activeSection.title}
-                                </h3>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="hidden h-7 w-7 items-center justify-center rounded border border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-white md:flex cursor-pointer text-xs"
-                            title="Fermer (Échap)"
-                        >
-                            ✕
-                        </button>
-                    </header>
-
-                    {/* Contenu Défilable */}
-                    <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-                        {/* Encart résumé / introduction */}
-                        <div className="rounded-lg border border-zinc-800 bg-zinc-950/70 p-3.5 text-xs text-zinc-300 leading-relaxed">
+                <main className="min-h-0 flex-1 overflow-y-auto p-5">
+                    <div className="mb-5">
+                        <h3 className="text-base font-semibold text-white">{activeSection.title}</h3>
+                        <p className="mt-1 text-sm leading-relaxed text-zinc-400">
                             {activeSection.introduction}
-                        </div>
+                        </p>
+                    </div>
 
-                        {/* Grille des cartes de règles */}
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {activeSection.cards.map((card) => (
-                                <article
-                                    key={card.title}
-                                    className="flex flex-col justify-between rounded-lg border border-zinc-800 bg-zinc-950 p-4 transition-colors hover:border-zinc-700"
-                                >
-                                    <div>
-                                        <div className="flex items-center justify-between gap-2 mb-2">
-                                            <h4 className="font-semibold text-xs text-white">
-                                                {card.title}
-                                            </h4>
-                                            {card.badge && (
-                                                <span className="rounded bg-zinc-800 border border-zinc-700 px-1.5 py-0.5 text-[9px] font-mono text-zinc-400 shrink-0">
-                                                    {card.badge}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed">
-                                            {card.text}
-                                        </p>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    </main>
-                </div>
+                    <div className="divide-y divide-zinc-800">
+                        {activeSection.cards.map((card) => (
+                            <article key={card.title} className="py-3 first:pt-0 last:pb-0">
+                                <h4 className="text-sm font-medium text-zinc-100">{card.title}</h4>
+                                <p className="mt-1 text-sm leading-relaxed text-zinc-400">{card.text}</p>
+                            </article>
+                        ))}
+                    </div>
+                </main>
             </div>
         </div>
     )
