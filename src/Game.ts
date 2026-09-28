@@ -1,4 +1,4 @@
-import { apiFetch } from '../api/client';
+import { apiFetch } from '../api/client.ts';
 
 export interface GamePlayer {
   id: number;

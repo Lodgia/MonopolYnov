@@ -1,8 +1,9 @@
+import React from "react";
 import { Player } from "./Player.ts";
-import { Propriety } from "./Propriety.ts";
+import { Square, Propriety } from "./Propriety.ts";
 
 interface CaseProps {
-  propriety: Propriety;
+  propriety: Square;
   players: Player[];
   position?: "top" | "bottom" | "left" | "right" | "corner";
 }
@@ -50,7 +51,7 @@ export function Case({ propriety, players, position = "bottom" }: CaseProps) {
         </h1>
         {pl(players)}      
         <p className="font-bold text-[9px] shrink-0">
-          {propriety.price}$
+          {(propriety as Propriety).price}$
         </p>
       </div>
     </div>
