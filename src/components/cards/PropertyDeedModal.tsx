@@ -7,8 +7,8 @@ interface PropertyDeedModalProps {
     ownerName?: string;
     ownerColor?: string;
     currentLevel?: number;
-    canBuy?: boolean;
-    canUpgrade?: boolean;
+    canBuy?: boolean | null;
+    canUpgrade?: boolean | null;
     onBuy?: () => void;
     onUpgrade?: () => void;
     onClose: () => void;
