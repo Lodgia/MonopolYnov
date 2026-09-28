@@ -25,7 +25,7 @@ export function Case({ property, players, position = "bottom" }: CaseProps) {
   };
   return (
     <div
-      className={`w-full h-full border border-slate-700 bg-white flex ${
+      className={`w-full h-full min-w-0 min-h-0 border border-slate-700 bg-white flex ${
         isHorizontal ? "flex-row" : "flex-col"
       } justify-between overflow-hidden rounded-sm`}
     >
@@ -43,12 +43,12 @@ export function Case({ property, players, position = "bottom" }: CaseProps) {
           isHorizontal ? "flex-col [writing-mode:vertical-rl]" : "flex-col"
         } ${position === "bottom" || position === "left" ? "rotate-180" : ""}`}
       >
-        <h1 className="font-bold text-[8px] leading-tight text-center break-words max-w-full">
+        <h1 className="min-w-0 min-h-0 overflow-hidden font-bold text-[8px] leading-tight text-center break-words max-w-full">
           {property.name}
         </h1>
         {pl(players)}
         <p className="font-bold text-[9px] shrink-0">
-          {(property as property).price}$
+          {(property as property).price}
         </p>
       </div>
     </div>
